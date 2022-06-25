@@ -1,0 +1,75 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## DATA GENERATION
+sigma <- round(runif(n = 1, min = 0.15, max = 0.3), 2)
+media <- sample(seq(0.9, 2, by = 0.1), 1)
+n <- sample(15:36, 1)
+conflevel <- sample(c(0.9,0.95,0.99), size = 1)
+
+zq <- round(qnorm(p = (1-conflevel)/2, lower.tail = F), 3)
+lower <- round(media - (zq * (sigma / sqrt(n))), 3)
+upper <- round(media + (zq * (sigma / sqrt(n))), 3)
+
+ME <- seq(0.01, 0.15, by = 0.01)
+ME0 <- sample(ME[ME < (zq * (sigma / sqrt(n)))], 1)
+n_vincolato <- ceiling(x = ((zq*sigma/ME0)^2))
+
+## DOMANDE E SOLUZIONI
+domande <- c(paste("Calcola l'estremo inferiore dell'intervallo di confidenza al ", conflevel*100, "\\% per il contenuto medio di nicotina di quel tipo di sigarette.", sep = ""), 
+             paste("Calcola l'estremo superiore dell'intervallo di confidenza al ", conflevel*100, "\\% per il contenuto medio di nicotina di quel tipo di sigarette.", sep = ""),
+             paste("Supponendo un intervallo di confidenza per il contenuto medio di nicotina di quel tipo di sigarette con livello fissato pari al ", conflevel*100, "\\%, quanto deve valere \\(n\\) affinché il margine di errore sia al più pari a ", ME0, "?", sep = ""))
+soluzioni <- c(lower, upper, n_vincolato)
+
+o <- sample(1:3, 1)
+domanda <- domande[o]
+sol <- soluzioni[o]
+```
+
+Question
+========
+Si analizza un campione di `r n` sigarette per determinare il contenuto di nicotina, e il valore medio dei dati ottenuti è di `r media` mg. Inoltre, è noto che la deviazione standard di nicotina da sigaretta a sigaretta è di `r sigma` mg. `r domanda`
+
+<br>
+
+Per il calcolo, utilizzare il quantile adeguato fra quelli forniti: 
+$$
+z_{`r 1-conflevel`} = `r round(qnorm(p = (1-conflevel), lower.tail = F), 3)`;
+\quad z_{`r (1-conflevel)/2`} = `r zq`; 
+\quad t_{`r n-1`,`r (1-conflevel)/2`} = `r round(qt(p = (1-conflevel)/2, df = n-1, lower.tail = F), 3)`
+$$
+$$
+\quad t_{`r n-2`,`r (1-conflevel)/2`} = `r round(qt(p = (1-conflevel)/2, df = n-2, lower.tail = F), 3)`;
+\quad t_{`r n-1`,`r 1-conflevel`} = `r round(qt(p = 1-conflevel, df = n-1, lower.tail = F), 3)`;
+\quad t_{`r n-2`,`r 1-conflevel`} = `r round(qt(p = 1-conflevel, df = n-2, lower.tail = F), 3)`
+$$
+
+<b>Importante:</b> `r ifelse(o == 3, "Arrotondare la numerosità campionaria trovata per eccesso. Ad esempio, $1{,}3 \\rightarrow 2$ e $1{,}8 \\rightarrow 2$.", "Arrotondare usando <b>3 cifre decimali</b> dopo la virgola. Ad esempio: $1{,}3335 \\rightarrow 1{,}334$ e $1{,}3332 \\rightarrow 1{,}333$.")` 
+
+
+
+Solution
+========
+Poiché la deviazione standard della popolazione è nota, un intervallo di confidenza di livello $1-\alpha = `r conflevel`$ per il contenuto medio di nicotina è del tipo 
+
+$$ \overline{x} \pm z_{\alpha/2} \frac{\sigma}{\sqrt{n}}$$
+
+Dal testo, è noto che $\overline{x} = `r media`$, mentre $\sigma = `r sigma`$. Inoltre, poiché $1-\alpha = `r conflevel`$, $\alpha = `r 1-conflevel`$ e $\alpha/2 = `r (1-conflevel)/2`$, per cui il quantile della normale standard cercato è $z_{\alpha/2} = z_{`r (1-conflevel)/2`} = `r zq`$. Mettendo tutto assieme, si ottiene
+
+$$\overline{x} \pm z_{\alpha/2} \frac{\sigma}{\sqrt{n}} \Longleftrightarrow `r media` \pm `r zq` \frac{`r sigma`}{\sqrt{`r n`}} \Longleftrightarrow (`r lower`; \ `r upper`),$$
+
+da cui si trova che l'estremo inferiore è pari a `r lower` mg, mentre l'estremo superiore è pari a `r upper` mg. 
+
+Tenendo il livello di confidenza fisso a $1-\alpha = `r conflevel`$, la formula per la numerosità campionaria $n$ affinché il margine d'errore $E$ dell'intervallo non superi la soglia di `r ME0` è la seguente (vedi slide 49/52, Settimana 6):
+
+$$n^* = \frac{(z_{\alpha/2})^2 \times \sigma^2}{E^2} = \frac{`r zq`^2 \times `r sigma`^2}{`r ME0`^2} = `r round(((zq*sigma/ME0)^2),3)`,$$
+
+da cui si deriva $n = `r n_vincolato`$.
+
+
+
+Meta-information
+================
+extype: num
+exsolution: `r sol`
+exname: Statistica
+extol: 0.005
+exsection: Statistica2/IC/Media_nicotina_varnota

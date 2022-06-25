@@ -1,0 +1,372 @@
+---
+title: "<img src=\"unive_0.jpg\" /> Network mapping and visualization in R"
+author: | 
+  | Angela Andreella 
+  | Ca' Foscari University of Venice
+  | angela.andreella@unive.it
+date: '2022-06-28'
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+    df_print: paged
+    toc: true
+    number_sections: true
+fontsize: 11pt
+geometry: margin = 1in
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning = F, message = F)
+rm(list = ls())
+```
+
+# Introduction
+
+The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for the material.
+
+In this tutorial, we will see how to represent graphically our network. First of all, you must load the `.RData` created in the previous tutorial:
+
+```{r}
+load("../Lab02/lab02.RData")
+```
+
+We will use the packages `igraph` and `ggraph`.
+
+```{r}
+library(igraph)
+library(ggraph)
+```
+
+
+# Plotting networks with igraph
+
+Plotting with `igraph`: the network plots have a wide set of parameters you can set. Those include *node* options (starting with `vertex.`) and *edge* options (starting with `edge.`). You can check out the list of possible options using the command`?igraph.plotting`.
+
+```{r}
+par(mfrow = c(1,1))
+plot(net)
+```
+
+As we can see, the graph is not so clear. So, lets modify it in a proper way:
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r}
+V(net)$name[which(B_net < quantile(B_net, .99))] = NA
+plot(net, 
+     vertex.label=V(net)$name, 
+     vertex.label.color = "black",
+     edge.color="grey", 
+     vertex.color="orange", 
+     vertex.frame.color="#ffffff",
+     main = "3 million Russian troll tweets")
+```
+:::
+::: {}
+__Comments__ 
+
+* `V(net)$name[which(B_net < quantile(B_net, .99))] = NA`: Delete vertices having betweeness value lower than the quantile at level $.99$;
+* `vertex.label`: change the label of the nodes;
+* `vertex.label.color`: change the color of the nodes' labels;
+* `edge.color`: change the color of the edges;
+* `vertex.color`: change the color of the nodes;
+* `vertex.frame.color`: change the color of the node border.
+* `main`: insert a title in the figure
+:::
+::::
+
+We further improve the graphical representation by using some algorithms to clue spatial positions, and by modifying the size and color of the nodes.
+
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+```{r}
+plot(net, 
+     vertex.size = .5*log(igraph::betweenness(net)+1),
+     vertex.color = as.numeric(factor(aType)),
+     vertex.label=V(net)$name, 
+     vertex.label.color = "black",
+     edge.color="grey", 
+     vertex.color="orange", 
+     vertex.frame.color="#ffffff",
+     main = "3 million Russian troll tweets")
+```
+:::
+::: {}
+__Comments__ 
+
+* `vertex.size`: change the size of the vertex. In this case we use a trasformation of the *betweenness* measure;
+* `vertex.color`: change the color of the nodes. In this case we use as information the type of twitter account analyzed.
+:::
+::::
+
+Alternatively, we can directly add these changes in the `igraph` object:
+
+```{r}
+V(net)$label = V(net)$name
+V(net)$label[which(B_net < quantile(B_net, .99))] = NA
+V(net)$label.color = "black"
+V(net)$size = .5*log(igraph::betweenness(net)+1)
+V(net)$color = as.numeric(factor(aType))
+E(net)$arrow.size<-.2 
+E(net)$edge.color<-"gray80"
+```
+
+## Network layout
+
+We can even set a specific network layout. In very short terms, a **layout** is the vertical and horizontal placement of nodes when plotting a particular graph structure. Conversely, a layout algorithm is an algorithm that takes in a graph structure (and potentially some additional parameters) and return the vertical and horizontal position of the nodes. Often, when people think of network visualizations, they think of node-edge diagrams where strongly connected nodes are attempted to be plotted in close proximity. Layouts can be a lot of other things too though — e.g. hive plots and treemaps. 
+
+
+
+1. **Graph layout by multidimensional scaling**
+
+The multidimensional scaling (**MDS**) algorithm tries to place nodes based on some measure of similarity or distance between them. More similar nodes are plotted closer to each other. By default, the measure used is based on the shortest paths between nodes in the network. We can change that by using our own distance matrix (however defined) with the parameter dist. MDS layouts are nice because positions and distances have a clear interpretation. The problem with them is visual clarity: nodes often overlap, or are placed on top of each other.
+
+```{r}
+llMDS = layout_with_mds(net)
+plot(net,layout= llMDS)
+```
+
+
+2. **The Fruchterman-Reingold layout algorithm**
+
+Fruchterman-Reingold (**FR**) is one of the most used force-directed layout algorithms out there. Force-directed layouts try to get a nice-looking graph where edges are similar in length and cross each other as little as possible. They simulate the graph as a physical system. Nodes are electrically charged particles that repulse each other when they get too close. The edges act as springs that attract connected nodes closer together. As a result, nodes are evenly distributed through the chart area, and the layout is intuitive in that nodes which share more connections are closer to each other. The disadvantage of these algorithms is that they are rather slow and therefore less often used in graphs larger than ~1000 vertices.
+
+```{r}
+set.seed(1)
+llFR = layout_with_fr(net,niter = 5000)
+plot(net,layout= llFR)
+l <- layout_with_fr(net, niter=5000)
+```
+
+With force-directed layouts, you can use the `niter` parameter to control the number of iterations to perform. The default is set at $500$ iterations. You can lower that number for large graphs to get results faster and check if they look reasonable.
+
+You will also notice that the Fruchterman-Reingold layout is not deterministic- different runs will result in slightly different configurations. Saving the layout in `l` allows us to get the exact same result multiple times, which can be helpful if you want to plot the time evolution of a graph, or different relationships– and want nodes to stay in the same place in multiple plots.
+
+```{r}
+par(mfrow=c(2,2), mar=c(0,0,0,0)) # plot four figures- 2 rows, 2 columns 
+plot(net, layout=layout_with_fr) 
+plot(net, layout=layout_with_fr) 
+plot(net, layout=l) 
+plot(net, layout=l)
+```
+
+
+3. **The Kamada-Kawai layout algorithm**
+
+Another popular force-directed algorithm that produces nice results for connected graphs is Kamada Kawai (**KK**). Like Fruchterman Reingold, it attempts to minimize the energy in a spring system.
+
+```{r}
+set.seed(1)
+llKK = layout_with_kk(net,dim = 2,maxiter = 100*vcount(net))
+plot(net,layout= llKK)
+```
+
+4. **Graphopt**
+
+**Graphopt** is a nice force-directed layout implemented in igraph that uses layering to help with visualizations of large networks.
+
+```{r}
+l <- layout_with_graphopt(net) 
+plot(net, layout=l)
+```
+
+The available `graphopt` parameters can be used to change the mass and electric charge of nodes, as well as the optimal spring length and the spring constant for edges. The parameter names are `charge` (defaults to $0.001$), `mass` (defaults to $30$), `spring.length` (defaults to $0$), and `spring.constant` (defaults to $1$). Tweaking those can lead to considerably different graph layouts.
+
+```{r}
+l1 <- layout_with_graphopt(net, charge=0.02) 
+l2 <- layout_with_graphopt(net, charge=0.00000001) 
+par(mfrow=c(1,2), mar=c(1,1,1,1)) 
+plot(net, layout=l1) 
+plot(net, layout=l2)
+dev.off()
+```
+
+
+
+4. **Large Graph Layout**
+
+The Large Graph Layout (**LGL**) algorithm is meant for large, connected graphs. Here you can also specify a root: a node that will be placed in the middle of the layout.
+
+```{r}
+graph_attr(net,"layout")<-layout_with_lgl 
+plot(net)
+```
+
+Let’s take a look at all available layouts in `igraph`:
+
+```{r}
+layouts <- grep("layout_", ls("package:igraph"), value=TRUE)[-c(1:2)]
+
+layouts <- layouts[!grepl("bipartite|merge|norm|sugiyama|tree", layouts)] 
+par(mfrow=c(3,3), mar=c(1,1,1,1)) 
+for(layout in layouts){ 
+  print(layout) 
+  l <- do.call(layout, list(net)) 
+  plot(net, edge.arrow.mode=0, layout=l, main=layout) 
+}
+```
+
+We can also try to make the network map more useful by showing the communities within it:
+
+# Beyond igraph: the ggraph package
+
+The `ggplot2` package and its extensions are known for offering the most meaningfully structured and advanced way to visualize data in R. In `ggplot2`, you can select from a variety of visual building blocks and add them to your graphics one by one, a layer at a time. The `ggraph` package takes this principle and extends it to network data. In this section, we’ll only cover the basics without providing a detailed overview of the grammar of graphics approach. For a deeper look, it would be best to get familiar with `ggplot2` first, then learn the specifics of `ggraph`. One good news is that we can use our igraph objects directly with the `ggraph` package. The following code gets the data and adds separate layers for nodes and links.
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r}
+library(ggraph) 
+library(igraph) 
+ggraph(net) + 
+  geom_edge_link(color = "gray70") + 
+  geom_node_point(color = V(net)$color) + 
+  theme_minimal()
+```
+:::
+::: {}
+__Comments__ 
+
+* `geom_edge_link(x)` -- draws edges in the simplest way - as straight lines between the start and end nodes.
+* `geom_node_point(x)` -- simple plotting of nodes in different shapes, colours and size. We use as colors the `V(net)$colors`, i.e., the levels of the `aType` factor variable.
+:::
+::::
+
+Lets try to improve it, we want nodes having **size** that reflectes the *centrality betweeneess* measure.
+
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r}
+library(tidygraph)
+df = as_tbl_graph(net)
+pl = df %>% mutate(btw= centrality_betweenness()) %>%
+ggraph(layout="fr") + 
+  geom_edge_link(show.legend = FALSE, color="gray70") +
+  geom_node_point(aes(colour = aType, size= btw), show.legend=T) + 
+  geom_node_label(aes(label=label))+
+  scale_size(guide="none") + 
+  theme_graph(base_family='sans') +
+  theme(legend.position = "bottom") + 
+pl
+```
+:::
+::: {}
+__Comments__ 
+* `as_tbl_graph(x)` -- convert the `igraph` object as `tbl_graph` for tidy graph manipulation.
+* `centrality_betweenness()` -- compute the betweenness centrality to use in the `ggraph`. `tidygraph` permits to compute all the centrality measures implemented in `igraph`, the functions have a consistent naming scheme .
+* `ggraph(layout='fr')` -- place vertices on the plane using the force-directed layout algorithm by Fruchterman and Reingold.
+* `geom_node_label(x)` -- put labels to the nodes.
+* `scale_size(guide = "none")` -- we insert this line in order to drop off the labels regarding the size variable.
+* `theme(legend.position = "bottom")` -- put the legend of the colors in the bottom of the graph.
+:::
+::::
+
+Now, instead of representing the levels of `aType` variable as colors of the nodes, we want to use the community computed by the *Louvain method* (that we compute in the previous laboratory).
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r}
+groupL = as.character(membership(gr))
+table(groupL)
+groupL[groupL %in% c(10,7,9, 11, 4)] = 4
+groupL[groupL %in% c(8)] = 7
+```
+:::
+::: {}
+__Comments__ 
+* `membership(x)` -- return for each nodes the corresponding `x` community.
+* `table()` -- contingency table.
+So, here we aggregate some communities if the frequency is low.
+:::
+::::
+
+It may make sense to keep only the ``interesting'' groups, and to assign labels that are recognizable:
+
+```{r}
+table(groupL, aType)
+groupL = str_replace(groupL, "1$", "Russian")
+groupL = str_replace(groupL, "2", "Right")
+groupL = str_replace(groupL, "3", "Russian2")
+groupL = str_replace(groupL, "4", "Other")
+groupL = str_replace(groupL, "5", "Left")
+groupL = str_replace(groupL, "6", "Hashtager")
+groupL = str_replace(groupL, "7", "German")
+```
+
+Apart from being more readable, do they also bring a reasonable division?
+
+```{r}
+assortativity(net, as.factor(groupL))
+```
+
+```{r}
+df = as_tbl_graph(net)
+pl = df %>% mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+ggraph(layout="fr") + 
+  geom_edge_link(show.legend = FALSE,color="gray") +
+  geom_node_point(aes(colour = gruppiL,size= btw),alpha =
+1,show.legend=T) + 
+  geom_node_label(aes(label=label))+
+  theme_graph(base_family='sans') + 
+  scale_size(guide="none") +
+  theme(legend.position = "bottom")
+pl
+```
+
+As a final modification, we use the functionality of the `tidygraph` package to improve graphical representation even further. The package allows various
+manipulations on network data with `dplyr` syntax. Specifically, the following fragment distinguishes the colour of the edges according to the groups of nodes connected by the edges itself.
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r}
+V(net)$better_gr = groupL
+
+df = as_tbl_graph(net)
+df = df %>% activate(edges) %>% 
+  mutate(e_col = ifelse(.N()$better_gr[to]
+== .N()$better_gr[from], .N()$better_gr[from], NA))
+
+df %>% 
+  activate(nodes) %>% 
+  mutate(btw= centrality_betweenness()) %>% 
+  ggraph(layout="fr") +
+  geom_edge_link(aes(color=e_col),alpha=.7,show.legend = FALSE) +
+  geom_node_point(aes(colour = gruppiL,size= btw),show.legend=T) + 
+  geom_node_label(aes(label=label))+
+  theme_graph(base_family='sans') + 
+  theme(legend.position = "bottom") +
+  scale_size(guide="none") + 
+  scale_edge_color_discrete(guide="none")
+```
+:::
+::: {}
+__Comments__ 
+* `activate(x)` --  does just that and needs affects all subsequent manipulations until a new table is activated.
+So, we create the new variable `e_col` considering the community of the nodes for each edge. 
+:::
+::::
+
+
+
+

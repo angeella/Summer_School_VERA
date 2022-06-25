@@ -1,0 +1,96 @@
+load("./russian_trolls.RData")
+library(igraph)
+net = graph_from_edgelist(Y,directed = F)
+
+for(j in 1:NCOL(X)){
+  net <- net %>% set_vertex_attr(name = colnames(X)[j], 
+                                 value = X[,j])
+}
+V(net)$name = V(net)$vertex.names
+net <- delete_vertices(net, which(degree(net) < 1))
+shortest_paths(net, from = "aiden7757")
+
+subg <- components(net)
+str(subg)
+subg$csize
+subg$membership
+
+net = delete.vertices(net, which(subg$membership != 1))
+shortest_paths(net, from = "aiden7757")
+
+vcount(net)
+D_net <- degree(net, normalized = T)
+C_net <- closeness(net, normalized = T)
+B_net <- betweenness(net, normalized = T)
+
+cor(cbind(D_net,C_net,B_net))
+pairs(cbind(D_net,C_net,B_net))
+
+aType <- vertex_attr(net, name = "accounttype")
+require(stringr)
+library(stringr)
+aType = str_to_title(aType)
+aType = str_replace(aType, "Ukranian", "Russian")
+aType = str_replace(aType, "Koch", "Fear")
+aType = str_replace(aType, "Commercial|Local", "News")
+aType = str_replace(aType, "^$|Arabic|\\?", "Other")
+table(aType)
+
+modularity(net, factor(aType))
+assortativity(net, factor(aType))
+
+gr = cluster_louvain(net)
+table(membership(gr))
+assortativity(net, membership(gr))
+
+table(aType, membership(gr))
+
+set.seed(1)
+plot(net)
+V(net)$label = V(net)$name
+V(net)$label[which(B_net < quantijle(B_net, .99)) ] = NA
+plot(net)
+
+set.seed(1)
+llFR = layout_with_fr(net, niter = 5000)
+
+V(net)$size = .5 * log(betweenness(net) + 1)
+V(net)$color = membership(gr)
+plot(net,layout = llFR)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

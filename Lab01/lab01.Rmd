@@ -1,0 +1,830 @@
+---
+title: "<img src=\"unive_0.jpg\" /> Introduction to R"
+author: | 
+  | Angela Andreella 
+  | Ca' Foscari University of Venice
+  | angela.andreella@unive.it
+date: '2022-06-28'
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+    df_print: paged
+    toc: true
+    number_sections: true
+fontsize: 11pt
+geometry: margin = 1in
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning = F, message = F)
+```
+
+This first tutorial covers basics of `R`, a gentle reminder. Therefore, you will need to install `R` and `Rstudio`. 
+
+You can find all the material for these tutorials [here!](https://github.com/angeella/summer_school_2022_VERA) 
+
+# use...R!
+
+ - Did you **install** `R`?
+ 
+ -  How many of you have ever **used** `R` or another programming language?
+ 
+Why `R`?
+
+ - **Reproducible analyses**
+ 
+ - Free, **Open-Source**
+ 
+ - Continuously **evolving** and expanding
+ 
+ - Large **community**
+ 
+<center> 
+![](Images/download.png){width=20%} <style>
+        p {line-width: 62em;}
+    </style>![](Images/R-LadiesGlobal.png){ width=20% }
+</center> 
+
+First of all, let's try `R`, but `Rstudio` is simpler:
+
+<center>
+![](Images/Rstudio.png){ width=70% }
+</center> 
+<br>
+
+
+`r emo::ji("boom")` **Please note**! `R` and `Rstudio` are not the same! `R` is a programming language while `Rstudio` is an IDE (integrated development environment) which makes `R` user-friendly.
+
+
+# Packages for everyone!
+
+`R` provides a number of packages (**packages**) that contain very useful functions of various kinds. For example with the following commands:
+ 
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r eval = FALSE}
+install.packages("ggplot2") 
+library(ggplot2) 
+```
+:::
+::: {}
+__Comments__ 
+
+* `install.packages(x)` -- install the package called `x`.
+* `library(x)` -- recall the installed package called `x` in our session.
+:::
+:::: 
+
+So, we install the package ``ggplot2`` and we recall it in our session. This package permits to create fancy graphical plots.
+
+$\rightarrow$ For each idea that you want to apply in `R`, probably a package exists which will resolve all your problems. If you find the following error:
+
+```{r, eval = F, echo = T}
+Error in library(dplyr) : there is no package called dplyr
+```
+
+means that you must install the package ``dplyr``. 
+`r emo::ji("smile")` 
+
+`r emo::ji("boom")` _Please note_: find errors/bugs on google or [stackoverflow](https://stackoverflow.com)!
+
+<center>
+![](Images/stackoverflow.png){ width=30% }
+</center>
+
+# Operations
+
+For the operations of addition, subtraction, multiplication and division we use $+ - * /$. For power elevation, $**$ or $^$ is used.
+
+```{r, echo = T, eval = F}
+(4+5)*3
+```
+
+Logical operators correspond to the following symbols:
+
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r dat_structure, eval = FALSE}
+# Variable "Country"
+DB$Country <- as.factor(DB$Country) 
+levels(DB$Country)
+# Variable "Region"
+DB$Region <- as.factor(DB$Region) 
+levels(DB$Region)
+# Variable "Hemisphere"
+table(DB$Hemisphere)
+DB$Hemisphere <- ifelse(DB$Hemisphere == "noth", "north", DB$Hemisphere)
+DB$Hemisphere <- as.factor(DB$Hemisphere) 
+levels(DB$Hemisphere)
+```
+:::
+::: {}
+__Comments__ 
+
+* `as.factor(x)` -- function transforming variable `x` in a categorical one.
+* `levels(x)` -- function listing all levels of variable `x`.
+* `table(x)` -- check how many values the variable `x` takes.
+* `ifelse(cond, x, y)` -- if `cond` is satisfied then return `x` else `y`.
+:::
+::::
+
+
+```{r, echo = T, eval = F}
+& #AND
+| #OR
+> #greater
+< #less
+== #equal
+!= #not equal
+>= #greater equal
+<= #less equal
+```
+
+`r emo::ji("boom")` _Please note_: The symbols ``=`` and ``<-`` are used to assign a value to a variable
+
+```{r, echo = T, eval = F}
+pluto = "hello"
+```
+
+different from `==` (logical operation defining equal)! 
+
+Let see some examples together:
+
+```{r, echo = T, eval = F}
+4==10
+5!=10
+(4==4)&(10!=1)
+8>=10
+3<20
+```
+
+`r emo::ji("boom")` **Please note**:
+
+```{r, echo = T, eval = F}
+TRUE==1
+```
+
+```{r, echo = T, eval = F}
+FALSE==0
+```
+
+# Other fundamental commands
+
+**Help?**
+
+```{r, echo = T, eval = F}
+help("+") #we ask for help to understand the + operation
+```
+
+**Change working directory?**
+
+```{r, echo = T, eval = F}
+setwd("my_path")
+```
+
+**How see the objects in my working directory?**
+
+```{r, echo = T, eval = F}
+ls()
+```
+
+**How remove some objects in my working directory?**
+
+```{r, echo = T, eval = F}
+rm(list = ls()) #remove all objects of my working directory
+rm(pluto) #remove the objects called pluto
+```
+
+# Load data
+
+How load data? depends... `r emo::ji("face")`
+
+First of all, you must understand the type of document (xlsx, csv, xls, txt etc), generally, there will be a specific command:
+
+```{r, echo = T, eval = F}
+read.table("path/file_name.txt") # txt
+read.csv("path/file_name.csv") # csv
+read.xlsx("path/file_name.xlsx") # xlsx
+```
+
+etc.. if you have doubts, use the ``help``, google, stackoverflow or [R-bloggers](https://www.r-bloggers.com/)! `r emo::ji("smile")`
+
+or you can go to File $\rightarrow$ Import Datasets $\rightarrow$ ...
+
+# Objects
+
+## Vector
+ 
+```{r, echo = T, eval = F}
+pluto <- c(1:100) #create a vector containing number from 1 to 100
+pluto1 <- seq(1,500,5) #create a vector with values from 1 to 500 for every 5 values
+pluto2 <- rep(10,5) #create a vector where the value 10 is repeated 5 times
+pluto[3] #recall the element of the vector pluto that is at position 3
+pluto[1:3] #recall the element of the vector pluto that is in the 1,2,3 position
+is.vector(pluto) #check that pluto is a vector
+length(pluto) #dimension of vector pluto?
+sort(pluto) #we sort pluto
+pluto/5 #we divide each element of pluto by 5
+```
+
+## Matrix
+ 
+```{r, echo = T, eval = F}
+foo <- matrix(data = 10, nrow = 10, ncol = 5) #Create a matrix 
+#with 10 rows and 5 columns containing only 10
+foo1 <- matrix(data = foo, nrow = 20, ncol = 5, byrow = T) #let's put foo in
+#foo! starting with rows (byrow)
+foo2 <- cbind(pluto,pluto1) #Unit the two vectors by column
+foo3 <- rbind(pluto,pluto1) #Unit the two vectors by row
+dim(foo) #Dimension of foo?
+ncol(foo) #number of columns of foo?
+nrow(foo) #number of rows of foo?
+is.matrix(foo) #Check that foo is an array 
+```
+
+`r emo::ji("boom")` if you don't remember $\rightarrow$ `help(matrix)`! 
+
+## Data-frame
+ 
+```{r, echo = T, eval = F}
+rick <- data.frame(foo2[1:20,]) #create a dataframe named rick 
+#which takes the first 20 observations of foo2
+dim(rick) #dimension? nrow, ncol etc as a matrix
+colnames(rick) #column names?
+rownames(rick) #row names?
+rownames(rick) <- letters[1:dim(rick)[1]] #rename the rows of rick 
+#as the first 20 letters of the alphabet
+rick[10,2] #recall the element of the 10th row and 2nd column
+rick$pluto #recall the variable pluto (first column)
+```
+ 
+> **_Question:_** _Which are the difference between `data.frame` e `matrix`?_ 
+
+
+Before continuing...
+
+ 1. Questions `r emo::ji("question")`
+ 
+ 2. But do I lose everything I have uploaded/written? No of course `r emo::ji("smile")`
+ 
+```{r, echo = T, eval = F}
+save(rick, file = 'your_path/my_first_RData.RData') #save the object 
+#rick in my_my_first_RData
+load("your_path/my_first_RData.RData") #and load it back into the working directory!
+``` 
+
+# A bit of Exploratory Data Analysis (EDA)
+
+This is a crucial part and usually takes up most of the time. A proper and extensive exploratory data analysis (EDA) would reveal interesting patterns and help to prepare the data in a better way for the following analyses. It can be roughly summarised in 3 big parts:
+
+1. _Structure and summary of data_ -- To check the type of variables in the data set and compute location indeces (e.g., mean, median) of the variables of interest.
+2. _Exploratory plots_ -- Histograms, boxplots, barplots, correlogram or scatterplots (e.g., skeweness, outliers).
+3. _"Cleaning" process_ -- Are there any NAs? Missing values? Integer variables to be converted in factors?
+
+Let's take a real example, we will use the `Happiness and Alcohol Consumpation` data set available at [Kaggle](https://www.kaggle.com/marcospessotto/happiness-and-alcohol-consumption) or in the `Datasets` folder. 
+
+```{r, echo = T}
+DB <- read.csv("Datasets/HappinessAlcoholConsumption.csv")
+```
+
+Were recorded `r library(tidyverse); DB %>% ncol()` different characteristics on `r library(tidyverse); DB %>% nrow()` countries during the year $2016$. In particular, these features were:
+
+- *Country* - Name of the country;
+- *Region* - Region the country belongs to;
+- *Hemisphere* - Hemisphere of country;
+- *HappinessScore* - A metric measured that asks the sampled people the question: ``How would you rate your happiness on a scale of $0$ to $10$ where $10$ is the happiest'';
+- *HDI* - Human Development Index by United Nations Development Programme;
+- *GDP_PerCapita* - Gross Domestic Product index;
+- *Beer_PerCapita* - Liters ( per capita ) of beer consumption;
+- *Spirit_PerCapita* - Liters ( per capita ) of spirit consumption;
+- *Wine_PerCapita* - Liters ( per capita ) of wine consumption.
+
+## Structure and summary of data
+
+and see some examples of type of objects:
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r eval = FALSE}
+is.data.frame(DB) 
+str(DB) 
+head(DB) 
+View(DB) 
+```
+:::
+::: {}
+__Comments__ 
+
+* `is.data.frame(x)` -- check if `x` is a data.frame object.
+* `str(x)` -- function display the internal structure of the data.frame object `x`.
+* `head(x)` -- return the first six observations (rows) of the data.frame object `x`.
+* `View(x)` -- open the data.frame object `x` in another window.
+:::
+::::
+
+Thanks to the function `str()` we can see the structure of the data, e.g.,:
+
+ 1. Numeric : `HappinessScore`, `GDI_PerCapita`;
+ 
+ 2. Character: `Country`, `Region`, `Hemisphere`; 
+ 
+ 3. Integer: `HDI`, `Beer_PerCapita`, `Spirit_PerCapita`, `Wine_PerCapita` ;  
+ 
+We must transform the variables `Country`, `Region` and `Hemisphere` as factors to be interpreted as categorical variables with `r levels(DB$Country)` levels for `Country`, `r levels(DB$Region)` levels for `Region`, and `r levels(DB$Hemisphere)` levels for `Hemisphere`. 
+ 
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r dat_structure, eval = FALSE}
+# Variable "Country"
+DB$Country <- as.factor(DB$Country) 
+levels(DB$Country)
+# Variable "Region"
+DB$Region <- as.factor(DB$Region) 
+levels(DB$Region)
+# Variable "Hemisphere"
+table(DB$Hemisphere)
+DB$Hemisphere <- ifelse(DB$Hemisphere == "noth", "north", DB$Hemisphere)
+DB$Hemisphere <- as.factor(DB$Hemisphere) 
+levels(DB$Hemisphere)
+```
+:::
+::: {}
+__Comments__ 
+
+* `as.factor(x)` -- function transforming variable `x` in a categorical one.
+* `levels(x)` -- function listing all levels of variable `x`.
+* `table(x)` -- check how many values the variable `x` takes.
+* `ifelse(cond, x, y)` -- if `cond` is satisfied then return `x` else `y`.
+:::
+::::
+
+Using `summary()` on an object of class `data.frame`, we can compute basic statistics for each variable in the data set: minimum, maximum and mean values and quartiles:
+
+```{r}
+summary(DB)
+```
+
+or we can use the commands `max()`, `min()`, `median()`, `quantile()`, `mean()`.
+
+```{r data_summary}
+out <- data.frame(
+min = min(DB$HappinessScore),
+quantile025 = quantile(DB$HappinessScore, 0.25),
+median = median(DB$HappinessScore),
+mean = mean(DB$HappinessScore),
+quantile075 = quantile(DB$HappinessScore, 0.75),
+max = max(DB$HappinessScore))
+rownames(out) <- NULL #remove rownames of the objects out
+knitr::kable(out)
+```
+
+## Exploratory plots
+
+<br>![](Images/pie1.gif){width=100%}
+
+We make histograms plot for each quantitative variable. We can use base `R` functions:
+
+```{r histograms0, fig.height=3}
+var_interest_numeric <- colnames(DB)[!(colnames(DB) %in% c("Country", "Region", "Hemisphere"))]
+for(i in c(1:length(var_interest_numeric))){
+  
+  hist(DB[,var_interest_numeric[i]], main = var_interest_numeric[i], xlab = var_interest_numeric[i])
+}
+```
+
+
+or we can use the packages `dplyr`, `tidyr`, `ggplot`:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+
+```{r fig.height=3}
+DB %>%
+  dplyr::select(all_of(var_interest_numeric)) %>%
+  gather(cols, value) %>%
+  ggplot(aes(x = value)) + geom_histogram(bins = 50) + facet_wrap(.~ cols, ncol = 3, scales = "free")
+```
+
+for the factor variables (`Region`, `Hemisphere`), we can use the `barplot` function:
+
+```{r histograms1, fig.height=3}
+var_interest_factor <- c("Region", "Hemisphere")
+for(i in c(1:length(var_interest_factor))){
+  
+  barplot(table(DB[,var_interest_factor[i]]), main = var_interest_factor[i], xlab = var_interest_factor[i])
+}
+```
+
+We do not consider the variable `Region` since it has $122$ unique values. In the same way as before, but using the command `geom_bar()`, we can use the packages `dplyr`, `tidyr`, `ggplot`:
+
+```{r fig.height=3}
+DB %>%
+  dplyr::select(all_of(var_interest_factor)) %>%
+  gather(cols, value) %>%
+  ggplot(aes(x = value)) + geom_bar() + facet_wrap(.~ cols, ncol = 3, scales = "free")
+```
+
+In the same way we can produce some boxplot using the basic `R` command `boxplot()` 
+
+```{r histograms2, fig.height=3}
+for(i in c(1:length(var_interest_numeric))){
+  
+  boxplot(DB[,var_interest_numeric[i]], main = var_interest_numeric[i], xlab = var_interest_numeric[i])
+}
+```
+
+or the `geom_boxplot()` function from the package `ggplot2`:
+
+```{r fig.height=3}
+DB %>%
+  dplyr::select(all_of(var_interest_numeric)) %>%
+  gather(cols, value) %>%
+  ggplot(aes(x = value)) + geom_boxplot() + facet_wrap(.~ cols, ncol = 3, scales = "free")
+```
+
+> **_Question:_** _Are there any missing values or NAs?_
+
+We can check the correlation between the *quantitative* variables to look at the level of linear dependence between pairs of two variables. We can either 
+
+(a) Read the correlation matrix (since the correlation matrix is symmetric -- $COR(X,Y) = COR(Y,X)$ --, we can simply look at the upper or lower triangular version of it).
+
+:::: {style="display: grid; grid-template-columns: 1fr 2fr; grid-column-gap: 20px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r correlation1}
+# Correlation matrix
+corr_matrix <- round(cor(DB[,var_interest_numeric]), 2)
+corr_matrix[lower.tri(corr_matrix)] <- 0
+corr_matrix
+```
+:::
+:::{}
+__Comments__ 
+
+* First line:
+  * `DB[,var_interest_numeric]` -- keep only the columns having name included in the `var_interest_numeric` vector.
+  * `cor(DB[...])` -- compute the correlation matrix for all possible couples of variables in the data set.
+  * `round(cor(...), 2)` -- rounds to two decimal places all correlation values.
+* Second line: keep only the values in the upper triangular part of the matrix for a better reading.
+:::
+::::
+
+(b) Plot the correlation matrix through a correlogram (higher absolute values of correlation between pairs of variables correspond to more vibrant colors on the cells of the correlogram for those pairs).
+
+:::: {style="display: grid; grid-template-columns: 1fr 2fr; grid-column-gap: 20px; place-items: start;"}
+::: {}
+__R commands__ 
+
+```{r correlation2, fig.width=14, fig.height=14}
+# Correlogram
+library(ggcorrplot)                                             
+ggcorrplot(corr_matrix, 
+           type = "upper", 
+           lab = T, 
+           lab_size = 7, 
+           outline.col = "white", 
+           colors = c("tomato2", 
+                      "white", 
+                      "springgreen3"), 
+           title = "", 
+           ggtheme = theme_gray, 
+           p.mat = cor_pmat(corr_matrix), 
+           pch.cex = 30, 
+           tl.cex = 20)
+```
+:::
+:::{}
+__Comments__ 
+
+* Install and load the library `ggcorrplot` to plot the correlogram. 
+* The function to be used is `ggcorrplot(x)`, where `x` is the correlation matrix (basic usage).
+* In particular:
+  * `corr_matrix` -- the first argument to be passed is the correlation matrix.
+  * `type = "upper"` -- print only the upper triangular part of the matrix.
+  * `lab = T` -- add correlation values on the plot. 
+  * `lab_size = 7` -- dimension of correlation values on the plot.
+  * `outline.col = "white"` -- border color of the cells of the correlation values.
+  * `colors = c("tomato2", "white", "springgreen3")` -- vector of 3 colors for negative, mid and positive correlation values.
+  * `title = ""` -- no title of the plot.
+  * `ggtheme = theme_gray` -- ggplot2 function or theme object
+  * `p.mat = cor_pmat(corr_matrix)` -- matrix of p-values, computed using the function `cor_pmat()`, from the hypothesis testing procedure with $H_0: correlation = 0$ vs $H_1: correlation \neq 0$. All those correlation values for which the p-value of the test was bigger than significance level $\alpha = 0.05$ are crossed.
+  * `pch.cex = 30` -- size of symbol for not statistically significant correlation values.
+  * `tl.cex = 20` -- size of variable name labels.
+:::
+::::
+
+*General note:* If you use a function inside a package only one time, and you don't want to occupy memory when loading all the functions inside that package, once you have installed the latter you can simply call the function of interest by `package::function(...)`. For example, if we only want to use the `ggcorrplot` function from the homonymous package, we can simply use `ggcorrplot::ggcorrplot(x)`.
+
+However, to speed up the code's writing we can use the following function from the `stats` package which is a basic package in `R`:
+
+```{r correlation3, fig.width=14, fig.height=14}
+heatmap(corr_matrix)
+```
+
+or the `corrplot` function from the `corrplot` package:
+
+```{r correlation4, fig.width=14, fig.height=14}
+corrplot::corrplot(corr_matrix)
+```
+
+
+Another way to analyse the relationships between numerical variables is through the graphical explotation of the scatterplots. 
+
+```{r scatterplot_matrices, fig.height=14, fig.width=14}
+# We plot a matrix of scatterplot using the "splom" function from the "lattice" library
+lattice::splom(x = DB[, var_interest_numeric], pch = "*")
+# We can imitate the latter plot using also basic R:
+pairs(DB[, var_interest_numeric], pch = "*", col = "#0080ff")
+```
+
+> **_Question:_** _What type or relationships can we detect?_
+
+## "Cleaning" process
+
+We can also prepare training and test data sets for prediction for (eventual) future analyses:
+
+```{r train_test}
+# Number of total rows in the data set (= maximum sample size from which we can draw random units):
+n <- nrow(DB)
+# Size of the training data set (3/4 of "census_tracts"):
+size <- round(0.75 * n)
+# We set a seed for reproducibility of our results:
+set.seed(666)
+# We sample the row indeces representing the statistical units that will end up in the training set:
+row.ind <- sample(x = 1:n, size = size) 
+train_db <- DB[row.ind,]
+# The remaining row indeces corresponds to the statistical units that end up in the test set:
+test_db <- DB[-row.ind,]
+# Check on factors (we must have all levels of categorical variables in both training and test sets):
+all.equal(levels(train_db$Country), levels(test_db$Country))
+all.equal(levels(train_db$Region), levels(test_db$Region))
+```
+
+_A little comment:_ When we split the original data set in training and test and there are categorical variables, it is better to check that all levels/categories of those variables are present in both training and test data. 
+
+> **_Question:_** _What could happen if categorical variable $X$ has all its levels in the training set but not in the test set? And if it has all its levels in the test set, but not the training one?_
+
+# Linear regression
+
+## The model
+
+We will start by fitting a simple linear regression model, with `HappinessScore` as the response variable and `Beer_PerCapita` as the predictor: 
+\[
+  \text{EQ. 1:} \qquad \text{HappinessScore}_i \approx \beta_0 + \beta_1 \, \text{Beer_PerCapita}_i, \qquad i = 1, \dots, n.
+\]
+The interest lies in testing the coefficients of the linear model, specifically $\beta_1$:
+
+- The null hypothesis is that the coefficient associated with `Beer_PerCapita` is zero -- $H_0: \beta_1 = 0$.
+- The alternative hypothesis is that the coefficient associated with `Beer_PerCapita` is not zero -- $H_1: \beta_1 \neq 0$ $\longrightarrow$ there exists a relationship between (the dependent variable) `HappinessScore` and (the independent variable) `HappinessScore`.
+- If the $p$-value associated to the estimate of $\beta_1$ is less than 0.05, we usually reject the null hypothesis.
+
+To see detailed results of the model, we can use the `summary` method for class `lm()`, the class of objects representing linear models in <tt>R</tt> (one of them): this gives us $p$-values and standard errors for all coefficients in the model, as well as the $R^2$ statistic and $F$-statistic: the former measures the proportion of the variation in the dependent variable explained by all of independent variables in the model, while, if the latter is statistically significant, the model can be considered "good". 
+
+:::: {style="display: grid; grid-template-columns: auto 2fr; grid-column-gap: 20px; place-items: start;"}
+::: {}
+__R commands__
+
+```{r slr1}
+# Simple linear regression model:
+lm.fit.simple <- lm(formula = HappinessScore ~ Beer_PerCapita, 
+                    # formula equivalent to the model in "EQ. 1"
+                    data = DB)
+summary(lm.fit.simple)
+```
+:::
+::: {}
+__Comments on `summary(lm.fit.simple)` output__
+
+* `Call` section -- print the code of the linear regression model.
+* `Residuals` section -- Location indeces of the residuals of the model, computed as $$e_i = y_i - \hat{y}_i = \text{HappinessScore}_i - \widehat{\text{Beer_PerCapita}}_i,$$ for $i = 1, \dots, n$.
+* `Coefficients` section -- Matrix of dimension "number of coefficients" $\times$ 4, where the 4 columns are 
+  * `Estimate` -- estimates of $\beta_0$ and $\beta_1$, obtained through OLS (ordinary least squares). Let us use $\hat{\beta}_0$ and $\hat{\beta}_1$ as symbols for estimates of $\beta_0$ and $\beta_1$, respectively.
+  * `Std. Error` -- standard errors for the estimates of $\beta_0$ and $\beta_1$.
+  * `t value` -- t-statistic value corresponding to the tests $$H_0: \beta_0 = 0 \text{ vs } H_1: \beta_0 \neq 0$$ and $$H_0: \beta_1 = 0 \text{ vs } H_1: \beta_1 \neq 0.$$
+  * `Pr(>|t|)` -- t-statistics related (two-sided) p-values.
+* Other quantities, as $R^2$ and $F$-statistics.
+:::
+::::
+
+> **_Question:_** _Is the coefficient associated to_ `Beer_PerCapita` _statistically significant? For which significance level $\alpha$? And what can we say about the model we just fitted? Is it good?_
+
+## Interpretation of the results 
+
+The fitted regression line can be written as 
+\[ 
+\widehat{\text{HappinessScore}}_i = \hat{\beta}_0 + \hat{\beta}_1 \, \text{Beer_PerCapita}_i = 4.78 + 0.05 \, \text{Beer_PerCapita}_i, \qquad i = 1, \dots, n. 
+\]
+
+We can say that the coefficient associated to `Beer_PerCapita` is statistically significant at a level $\alpha = 0.05$ (actually, at lower level), meaning that there exists a (strong) relationship between `HappinessScore` and `Beer_PerCapita`. Moreover, since it has a negative sign, we can interpret it as follows: if `Beer_PerCapita` differed by 1\%, `HappinessScore` will decrease by `r abs(round(coef(lm.fit.simple)[[2]], 3))` units, on average.
+
+We can compute the $95\%$ confidence interval for the coefficient $\beta_0$ and $\beta_1$:
+
+```{r slr2b}
+# Confidence intervals
+confint(lm.fit.simple)
+```
+
+## Prediction and confidence intervals
+
+The `predict()` function can be used to produce confidence intervals and prediction intervals for the prediction of `HappinessScore` for a given value of `Beer_PerCapita`: the result is a matrix, with number of rows equal to the number of new values of `Beer_PerCapita` we pass to `predict`, and 3 columns, containing in the column 
+
+* `fit` -- the estimated/predicted value of `HappinessScore` for a given value of `Beer_PerCapita`.
+* `lwr` -- the lower extreme of the confidence/prediction intervals containing `HappinessScore` for a given value of `Beer_PerCapita`.
+* `upr` -- the upper extreme of the confidence/prediction intervals containing `HappinessScore` for a given value of `Beer_PerCapita`.
+
+
+* A 95\% confidence interval for the __coefficients of the simple linear regression__ is computed as 
+\[ 
+  \hat{\beta}_0 \pm 1.96 \cdot SE(\hat{\beta}_0) 
+\] 
+for $\beta_0$, or 
+\[ 
+  \hat{\beta}_1 \pm 1.96 \cdot SE(\hat{\beta}_1)
+\] 
+for $\beta_1$.
+* A 95\% confidence interval for the __average response__ of the model regards $E(\text{HappinessScore})$.
+* A 95\% prediction interval for the __individual response__ of the model regards $\text{HappinessScore}_{\text{new data}}$.
+
+As an example:
+
+```{r slr3}
+# Confidence intervals
+predict(lm.fit.simple,                                       # lm fitted object
+        newdata = data.frame(Beer_PerCapita = (c(40, 125, 200))),          # new values for Beer_PerCapita (to be given as data.frame)
+        interval = "confidence")                             # type of interval
+# Prediction intervals
+predict(lm.fit.simple,                                       # lm fitted object
+        newdata = data.frame(Beer_PerCapita = (c(40, 125, 200))),          # new values for Beer_PerCapita (to be given as data.frame)
+        interval = "prediction")                             # type of interval
+```
+
+As expected, the confidence and prediction intervals are centered around the
+same point but the latter are substantially wider.
+
+## Graphical representation of the model
+
+The plot of the regression model with both confidence and prediction intervals can be obtained as follows:
+
+```{r slr4}
+# New data
+new_Beer_PerCapita <- seq(min(DB$Beer_PerCapita), max(DB$Beer_PerCapita), by = 0.05)
+# 95% confidence interval for regression line
+conf_interval <- predict(lm.fit.simple, 
+                         newdata = data.frame(Beer_PerCapita = new_Beer_PerCapita), 
+                         interval = "confidence", level = 0.95)
+# 95% prediction interval for regression line
+pred_interval <- predict(lm.fit.simple, 
+                         newdata = data.frame(Beer_PerCapita = new_Beer_PerCapita), 
+                         interval = "prediction", level = 0.95)
+
+# Plot
+plot(x = DB$Beer_PerCapita,                                         # `Beer_PerCapita` on x-axis
+     y = DB$HappinessScore,                                          # `HappinessScore` on y-axis
+     pch = "*", cex = 0.8,                                            # graphical parameter
+     xlab = "Beer Per Capita",                  # labels of x-axis and y-axis
+     ylab = "mHappiness Score")
+abline(lm.fit.simple, col = "blue")                          # regression line
+lines(new_Beer_PerCapita, conf_interval[,2], col = "blue", lty = 2)            # lower extreme conf. interval
+lines(new_Beer_PerCapita, conf_interval[,3], col = "blue", lty = 2)            # upper extreme conf. interval
+lines(new_Beer_PerCapita, pred_interval[,2], col = "red", lty = 2)             # lower extreme pred. interval
+lines(new_Beer_PerCapita, pred_interval[,3], col = "red", lty = 2)             # upper extreme pred. interval
+legend("topright",                                                    # legend
+       title = expression(1-alpha == 0.95 ~ ("95%")),
+       legend = c("Conf. interval", "Pred. interval"),
+       lty = 2, col = c("blue", "red"))
+```
+
+## Diagnostics
+
+There is some evidence for non-linearity in the relationship between `Beer_PerCapita` and `HappinessScore`.
+
+This non-linearity can be examineed also through some diagnostic plots. In order:
+
+* **Top-left plot** -- **Residual versus fitted values** <br> This plot shows if residuals have non-linear behaviour, which may happen in case of a non-linear relationship between the predictor and the response. If you find equally spread residuals around a horizontal line in 0 without distinct patterns, that is a good indication you do not have non-linear relationships. 
+* **Top-right plot** -- **Normal Q-Q plot** <br> This plot shows if residuals are normally distributed. It is a scatterplot created by plotting the theoretical quantiles of a standard normal distribution against the quantiles of the standardized residuals: if both sets of quantiles came from the same distribution (i.e., standard normal), we should see the points forming a line that is roughly straight. 
+* **Bottom-left plot** -- **Scale-Location comparison** <br> This plot shows if residuals are spread equally along the ranges of predictors. This is how you can check the assumption of homoscedasticity in your data (homoscedasticity means equal variance). If you see a horizontal line in 1 with equally (randomly) spread points, than the situation is good.
+* **Bottom-right plot** -- **Residuals vs Leverage** <br> This plot helps us to find influential cases (i.e., subjects) if any. Not all outliers are influential in linear regression analysis: even though data have extreme values, the regression results wouldn't be much different if we either include or exclude them from analysis. On the other hand, some cases could be very influential even if they look to be within a reasonable range of the values. To detect those values, we observe if there are values at the upper/lower right corner of this graph, outside of a dashed line called Cook's distance: when this happens, the cases are influential to the regression results, meaning that the regression results will be altered if we exclude them.
+
+:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 20px; place-items: start;"}
+::: {}
+__R commands__
+
+```{r slr5, fig.height=10, fig.width=10, echo=c(1,2,3,5,6)}
+# Diagnostic plots
+par(mfrow = c(2,2))
+plot(lm.fit.simple)
+par(mfrow = c(1,1))
+# # Alternatively
+# autoplot(lm.fit.simple, label.size = 3)
+```
+:::
+::: {}
+__Comments__
+
+* **Residual versus fitted values** -- We can see a parabolic pattern in our case, meaning that there is a non-linear relationship that was not explained by the model and was left out in the residuals.
+* **Normal Q-Q plot** -- The points do not follow the straight line, meaning that the standardized residuals probably not follow a standard normal distribution (i.e., the residuals are not normal).
+* **Scale-Location** -- The residuals seem to spread wider the closer it gets to 0 along the x-axis. Because of that, the red smooth line is not horizontal and shows a parabolic behaviour.
+* **Residuals vs Leverage** -- This is a typical case when there are no influential observations. The Cook's distance lines (i.e., red dashed lines) are not seen because all cases are well inside of it. 
+:::
+::::
+
+## Multiple linear regression
+
+We can add more variables to the model, keeping in mind that now we have both quantitative and qualitative variables to take into consideration as predictors. 
+\[
+  \text{HappinessScore}_i \approx \beta_0 + \beta_1 \, \text{Beer_PerCapita}_i + \beta_2 \text{HDI}_i + \dots + \beta_{3} \text{Wine_PerCapita}_i, \qquad i = 1, \dots, n.
+\]
+Below we use the syntax `formula = response variable ~.` inside `lm()` to include all the variables except `HappinessScore` in the model as linear independent predictors, while `-Country` after the symbol `~` permits to not consider the `Country` variable into the model.
+
+> **_Question:_** _What does we find? How can we interpret the results of the regression models? And in terms of goodness of the model, what does the $F$-statistic tell us?_
+
+```{r mlr1, echo=1:2}
+lm.fit.multiple <- lm(HappinessScore ~. -Country, data = DB)
+summary(lm.fit.multiple)
+# car::vif(lm.fit.multiple)
+```
+
+## Interaction terms
+
+It is easy to include interaction terms in a linear model using the `lm()` function.
+
+```{r it}
+lm.fit.interactions <- lm(HappinessScore ~ Beer_PerCapita*Hemisphere, data = DB)
+summary(lm.fit.interactions)
+```
+
+> **_Question:_** _What does we find? How can we interpret the results of the regression models? And in terms of goodness of the model, what does the $F$-statistic tell us?_
+
+## Non-linear transformations of the predictors
+
+The `lm()` function can also accommodate non-linear transformations of the predictors. For instance:
+
+```{r nonLinearVar1}
+lm.fit.nonlinear <- lm(HappinessScore ~ Beer_PerCapita + I(Beer_PerCapita^2), data = DB)
+summary(lm.fit.nonlinear)
+```
+
+The near-zero $p$-value associated with the quadratic term suggests that it leads to an improved model. We use the `anova()` function to further quantify the extent to which the quadratic fit is superior to the linear fit:
+
+```{r nonLinearVar2}
+anova(lm.fit.simple, lm.fit.nonlinear)
+```
+
+The `anova()` function performs a hypothesis test comparing the two models. The null hypothesis is that the two models fit the data equally well, and the alternative hypothesis is that the model with both linear and quadratic terms is superior. Here the $F$-statistic is 135 and the associated $p$-value is virtually zero. This provides very clear evidence that the model containing the predictors `Beer_PerCapita` and `Beer_PerCapita`$^2$ is far superior to the model that only contains the predictor `Beer_PerCapita`.
+
+__Question:__ _Is this surprising or not? And what can we say from the diagnostics below?_
+
+```{r nonLinearVar3, fig.height=10, fig.width=10, echo=c(1,2,4,5)}
+par(mfrow = c(2,2))
+plot(lm.fit.nonlinear)
+par(mfrow = c(1,1))
+# # Alternatively
+# autoplot(lm.fit.nonlinear, label.size = 3)
+```
+
+
+# Concluding.. Do you want to become a supeR useR?
+
+What to do?
+
+- Train `r emo::ji("sports")`
+
+- Work out the bugs yourself `r emo::ji("bug")`
+
+- Document yourself `r emo::ji("book")`:
+
+   - Google, [R-bloggers](https://www.r-bloggers.com/), ...
+
+   - [R Cookbook](https://www.amazon.com/Cookbook-OReilly-Cookbooks-Paul-Teetor/dp/0596809158/ref=dp_rm_title_0)
+   
+   - [R in a Nutshell](https://www.amazon.com/R-Nutshell-In-OReilly/dp/144931208X/ref=dp_rm_title_3)
+   
+   - [Learning R](https://www.amazon.com/Learning-R-Richard-Cotton/dp/1449357105/ref=dp_rm_title_1)
+   
+   - [An Introduction to Statistical Learning: with Applications in R](https://www.amazon.com/Introduction-Statistical-Learning-Applications-Statistics/dp/1461471370/ref=pd_sim_14_1?ie=UTF8&dpID=41oQwj8rS0L&dpSrc=sims&preST=_AC_UL160_SR106%2C160_&refRID=0CHFMDE74NCF14EF71EM)
+   
+  
+

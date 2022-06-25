@@ -1,0 +1,240 @@
+# ----import
+load("./russian_trolls.RData")
+#ls()
+#str(X)
+#str(Y)
+
+# ----graph
+require(igraph)
+net = graph_from_edgelist(Y,directed = F)
+for(j in 1:NCOL(X)){
+	net = net %>% set_vertex_attr(name = colnames(X)[j],value = X[,j])
+}
+
+# ----check
+summary(net)
+#length(V(net))
+list.vertex.attributes(net)
+V(net)$name = V(net)$vertex.names
+
+
+# ----remove
+net = delete_vertices(net, which(degree(net) < 1))
+
+# ----grado
+D_net = degree(net)
+sort(D_net,decreasing = T)[1:5]
+
+par(mfrow=c(1,2))
+hist(D_net,nclass = 100, main = "Distribuzione del grado")
+hist(degree(net,normalized = T),nclass=100, main = "Grado (normalizzato)")
+par(mfrow=c(1,1))
+edge_density(graph = net)
+
+# ----globali
+diameter(net)
+
+average.path.length(net)
+
+
+# ----dist
+#?shortest_paths
+#shortest_paths(graph = net,from = "aiden7757")
+shortest_paths(graph = net,from = "aiden7757",to = "_nickluna_")$vpath
+
+# ----dist_mat
+average.path.length(graph = net)
+S = distances(graph = net)
+#image(S,col = gray.colors(n = diameter(net)))
+
+# ----inf
+#which(is.infinite(S),arr.ind = T)
+
+# ----cent
+C_net = closeness(graph = net)
+B_net = betweenness(graph = net)
+
+# ----comp
+subg = components(graph = net)
+subg$csize
+
+
+# ----centPlot
+net   =  delete.vertices(net, which(subg$membership != 1))
+C_net =  closeness(graph = net,normalized = T)
+B_net =  betweenness(graph = net,normalized = T)
+D_net =  degree(net,normalized = T)
+
+sort(D_net,decreasing = T)[1:5]
+sort(C_net,decreasing = T)[1:5]
+sort(B_net,decreasing = T)[1:5]
+
+# ----closeH
+par(mfrow = c(1,2))
+hist(closeness(net,normalized = T),nclass = 50,main="closeness")
+hist(betweenness(net,normalized = T),nclass = 1000,main="betweennes")
+par(mfrow = c(1,1))
+
+# ----info
+sum(B_net > .1)
+
+# ----corm
+cor(cbind(B_net,D_net,C_net))
+
+# ----centP
+require(GGally)
+ggpairs((data.frame(B_net,D_net,C_net))) + theme_bw()
+
+# ----accounttype
+aType = vertex_attr(graph = net,name="accounttype")
+#table(aType)
+
+# ----accountCod
+require(stringr)
+aType = str_to_title(aType)
+aType = str_replace(aType,"Ukranian","Russian")
+aType = str_replace(aType,"Commercial|Local","News")
+aType = str_replace(aType,"Koch","Fear")
+aType = str_replace(aType,"^$|Arabic|\\?", "Other")
+table(aType)
+
+# ----grstat
+require(tidyverse)
+df_pl = data.frame(den=D_net, clos = C_net, bet = B_net, x=aType)
+#gather(df_pl,"den","clos","bet")
+
+df_pl %>% filter(x %in% c("Right","Left","Russian")) %>%
+	gather(.,"den","clos","bet",key="stat",value = "value") %>% 
+	ggplot(aes(value,after_stat(density),color=x)) +
+	geom_freqpoly(lwd=1) + 
+	facet_wrap(~stat,scales="free")+
+	theme_bw()
+
+# ----grstatNO
+require(tidyverse)
+df_pl = data.frame(den=D_net, clos = C_net, bet = B_net, x=aType)
+#gather(df_pl,"den","clos","bet")
+df_pl %>% filter(x %in% c("Right","Left","Russian")) %>%
+	gather(.,"den","clos","bet",key="stat",value = "value") %>% 
+	#head()
+	ggplot() +
+	geom_histogram(aes(value,fill=x),alpha=.5) + 
+	facet_wrap(~stat,scales="free")+
+	#xlim(0,0.05)+
+	theme_bw()
+
+# ----grpr2
+netL = delete.vertices(net,aType != "Left")
+netR = delete.vertices(net,aType != "Right")
+average.path.length(netL)
+average.path.length(netR)
+diameter(netL)
+diameter(netR)
+
+# ----groups
+modularity(net,factor(aType))
+assortativity(net,factor(aType))
+
+# ----grLo
+gr = cluster_louvain(graph = net)
+#gr2 = cluster_fast_greedy(graph = net)
+table(membership(gr))
+assortativity(net,membership(gr))
+
+# ----grComp
+tab = table(membership(gr), aType)
+knitr::kable(tab)
+
+
+# ----plot
+plot(net)
+
+# ----plotlab
+V(net)$label = V(net)$name
+V(net)$label[which(B_net < quantile(B_net, .99))] = NA
+V(net)$label.color = "black"
+plot(net)
+
+# ----plotSize
+V(net)$size = .5*log(betweenness(net)+1)
+V(net)$color = as.numeric(factor(aType))
+plot(net)
+
+# ----layoutMDS
+llMDS = layout_with_mds(net)
+plot(net,layout= llMDS)
+
+# ----layoutFR
+#V(net)$label = rep(NA, vcount(net))
+set.seed(1)
+llFR = layout_with_fr(net,niter = 5000)
+plot(net,layout= llFR)
+
+# ----layoutKK
+set.seed(1)
+llKK = layout_with_kk(net,dim = 2,maxiter = 100*vcount(net))
+plot(net,layout= llKK)
+
+# ----layoutFR2
+gruppiL = membership(gr)
+gruppiL[gruppiL %in% c(5,6,8,10)] = 5
+V(net)$color=gruppiL
+plot(net,layout= llFR)
+
+# ----ggraph
+require(ggraph)
+require(tidygraph)
+df = as_tbl_graph(net)
+pl = df %>% 
+	mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+	ggraph(layout="fr") + 
+	geom_edge_link(show.legend = FALSE,color="gray") + 
+	geom_node_point(aes(colour = aType,size= btw),alpha = 1,show.legend=T) + 
+	geom_node_label(aes(label=label))+
+	scale_size(guide="none") +
+	theme_graph(base_family='sans') +
+	theme(legend.position = "bottom")
+pl
+
+# ----bettergr
+gruppiL = as.character(membership(gr))
+gruppiL = str_replace(gruppiL, "1$", "Hashtagers")
+gruppiL = str_replace(gruppiL, "2", "Russia1")
+gruppiL = str_replace(gruppiL, "3", "Sinistra")
+gruppiL = str_replace(gruppiL, "4", "Russia2")
+gruppiL = str_replace(gruppiL, "7", "Destra")
+gruppiL = str_replace(gruppiL, "9", "Tedeschi")
+gruppiL = str_replace(gruppiL, "^\\d+", "Altro")
+
+# ----bettergrval
+assortativity(net,as.factor(gruppiL))
+
+# ----ggraph2
+df = as_tbl_graph(net)
+pl = df %>% 
+	mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+	ggraph(layout="fr") + 
+	geom_edge_link(show.legend = FALSE,color="gray") + 
+	geom_node_point(aes(colour = gruppiL,size= btw),alpha = 1,show.legend=T) + 
+	geom_node_label(aes(label=label))+
+	theme_graph(base_family='sans') +
+	scale_size(guide="none") +
+	theme(legend.position = "bottom")
+pl
+
+# ----graphnice
+V(net)$better_gr = gruppiL
+df = as_tbl_graph(net)
+df = df %>% activate(edges)  %>% 
+	mutate(e_col = ifelse(.N()$better_gr[to] == .N()$better_gr[from], .N()$better_gr[from], NA))
+
+df %>% activate(nodes) %>%
+	mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+	ggraph(layout="fr") + 
+	geom_edge_link(aes(color=e_col),alpha=.7,show.legend = FALSE) + 
+	geom_node_point(aes(colour = gruppiL,size= btw),alpha = 1,show.legend=T) + 
+	geom_node_label(aes(label=label))+
+	theme_graph(base_family='sans') +
+	theme(legend.position = "bottom") +
+	scale_size(guide="none") +
+	scale_edge_color_discrete(guide="none")

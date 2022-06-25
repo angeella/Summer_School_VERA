@@ -1,0 +1,216 @@
+---
+title: "Analisi di rete con R - troll russi"
+author: "ea"
+date: ""
+lang: it
+fontsize: 12pt
+urlcolor: blue
+---
+
+```{r,echo=F}
+rm(list=ls())
+knitr::read_chunk("./russ.r")
+options(digits = 3,width=75)
+library(knitr)
+hook_output = knit_hooks$get('source')  #this is the output for code
+
+knit_hooks$set(source = function(x, options) {
+  # use if the output is PDF and you set an option linewidth to e.g. 70
+  # in the chunk options
+  if (!is.null(n <- options$linewidth) & knitr::is_latex_output()) {
+    x <- strwrap(x, width = n, exdent = 4)
+  }
+  hook_output(x, options)
+})
+opts_chunk$set(linewidth=75,message=F)
+```
+
+# Descrizione dei dati
+
+Questo laboratorio si concentra sull'analisi di un gruppo di profili twitter definiti come "troll".
+Il dataset originale è composto da circa 3 milioni di tweet che hanno coinvolto questi profili sospetti, ed è disponibile [qui](https://github.com/fivethirtyeight/russian-troll-tweets).
+Si veda anche [questo articolo](https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/) per alcune interessanti analisi preliminari.
+Nel laboratorio di oggi, ci concentriamo sull'analisi di questi dati da un punto di vista di rete sociale.
+Nello specifico, è di interesse analizzare la struttura di interazione tra questi profili, definendo alcune proprietà di interesse.
+I dati sono strati processati in modo da costruire una rete binaria ed indiretta tra i profili, in cui la presenza di un arco tra il nodo $i$ e il nodo $j$ indica che i due profili hanno interagito. Stiamo escludendo la natura dell'interazione (commento/retweet), la direzione, e il numero di volte in cui questa interazione è avvenuta (peso dell'arco).
+
+# Analisi
+
+Procediamo quindi con la lettura del database, contenuto nel file `russian_tolls.RData`.
+```{r import}
+```
+Il file contiene due matrici: `Y` contiene la lista di archi, mentre `X` contiene alcune informazioni sui nodi. Carichiamo il pacchetto `igraph`, leggiamo i dati come struttura di rete e assegnamo alcuni attributi. 
+
+```{r graph,message=F,warning=F}
+```
+Controlliamo alcune proprietà dell'oggetto appena creato, e assegnamo ad ogni nodo il nome contenuto nella variabile `vertex.names`.
+
+```{r check}
+```
+Quando si analizzano dati di rete, può accadere che alcuni nodi disponibili non abbiano connessioni (grado uguale a zero). 
+Tali profili possono essere interessanti da un punto di vista di analisi testuale, ad esempio, mentre in ottica di rete non ci dicono nulla di interessante. 
+
+```{r remove}
+```
+
+Per rimuovere i nodi senza connessioni, abbiamo utilizzato la funzione `degree`, che calcola il grado nei nodi indicati (di default, tutti), eventualmente normalizzato.
+Possiamo valutare quindi quali sono i nodi con un numero elevato di connessioni (_hubs_) 
+
+```{r grado}
+```
+La rete presenta una classica struttura di tipo "power-law", in cui la distribuzione dei nodi ha un decadimento esponenziale al crescere del grado: molti nodi hanno un numero ridotto di connessioni (1 o 2), mentre un numero ridotto di nodi ne presenta molte. Chiaramente la forma della distribuzione non cambia considerando la quantità normalizzata o assoluta (tutti i gradi vengono divisi per $(V-1)$). 
+La distribuzione dei gradi normalizzati, tuttavia, ci permette di osservare che anche i nodi più connessi presentano un numero tutto sommato ridotto di connessioni, rispetto alla dimensione della rete.
+Tale risultato non è sorprendente, se consideriamo che la densità della rete è pari a circa `r round(edge_density(net),3)`. Ossia, di tutte le possibili connessioni, ne osserviamo circa $4$ su $1000$.
+
+Una fondamentale concetto visto a lezione è quello della _distanza geodesica_, ossia la lunghezza del cammino più breve che connette due nodi. La libreria `igraph` permette di calcolare in modo efficiente tale quantità anche per reti molto grandi, utilizzando diversi algoritmi.
+Ad esempio, per calcolare il percorso che connette due nodi,
+
+```{r dist}
+```
+
+Possiamo essere interessati a valutare la distanza media tra nodi, ossia la lunghezza media dei cammini, e la matrice $S$ di distanze totali, tra tutte le coppie possibili di nodi.
+
+```{r dist_mat,fig.height=5,fig.width=5,dpi=30}
+```
+La lunghezza media dei cammini è pari a `r average.path.length(graph = net)` e coerente con la teoria del mondo piccolo: in media, è sufficiente passare per un numero di nodi piccolo per connettere due soggetti qualsiasi all'interno della rete.
+
+Oltre al grado, vi solo altre misure per valutare l'importanza di un nodo all'interno della rete.
+Le più importanti sono la closeness e la betweenness, entrambe calcolate come funzione dei cammini più brevi.
+
+```{r cent}
+```
+
+Il calcolo della centralità ritorna un avvertimento, dicendoci che per alcune coppie di nodi non è possibile individuare un cammino che li connette ($s_{ij} = \infty$) e quindi la closeness non è ben definita in tal caso.
+Tale risultato indica che è la rete è disconnessa, ossia presenta dei gruppi di nodi che sono completamente scollegati dal resto della rete.
+Questa proprietà è investigata utilizzando la funzione seguente.
+
+```{r comp}
+```
+La rete che stiamo analizzando presenta una componente molto estesa, formata da `r max(subg$csize)` nodi, e diverse componenti formate da pochissimi nodi (2 o 4). Esiste anche una componente formata da `r sort(subg$csize,dec=T)[2]` nodi, che forma un gruppo isolato e che potrebbe essere interessante analizzare in un secondo momento.
+Per il momento, ci concentriamo solo sulla componente più estesa, escludendo gli altri nodi dall'analisi.
+Ricalcoliamo le statistiche citate in precedenza e valutiamo quali nodi sono associati a valori più elevati.
+
+```{r centPlot}
+```
+Come si distribuiscono la closeness e la betweennes in questa rete? 
+
+```{r closeH,echo=F}
+```
+La closeness presenta una distribuzione bimodale, con una moda intorno a $0.16$ e un'altra su valori più alti. La betweenness, invece, presenta una distribuzione fortemente asimmetrica.
+Ad esempio,
+
+```{r info}
+```
+osserviamo che solo `r sum(B_net > .1)` nodi hanno una betweennes superiore a $0.1$.
+
+Potremmo anche chiederci se e come queste statistiche siano collegate. Ad esempio, al crescere del grado, crescono anche betwennes e closeness?
+
+```{r corm}
+```
+
+```{r centP}
+```
+
+I dati suggeriscono che vi è una certa associazione tra grado e betweennes (come è lecito aspettarsi in questo esempio).
+
+## Rete e gruppi
+La rete di troll russi è chiaramente caratterizzata da diversi gruppi. Di particolare interesse è, ad esempio, la tipologia di account, suddivisa in alcune macro-categorie. 
+È disponibile anche una divisione meno fine.
+
+```{r accounttype}
+```
+
+Puliamo le varie stringe con l'utilizzo di alcune espressioni regolari. Nota che `^$` fa un match per una stringa vuota (`^` rappresenta l'inizio di una riga, `$` la fine), e che il carattere `?` deve essere preceduto dai caratteri di escape `'\\'`.
+
+
+```{r accountCod}
+```
+A questo punto, possiamo essere interessati ad alcune caratteristiche dei nostri gruppi. Ad esempio, come varia la distribuzione del grado e centralità tra i tre gruppi più grandi?
+
+```{r grstat,fig.height=5,fig.width=10,message=F}
+```
+Come discusso a lezione, in generale non ci aspettiamo che ci siano grandissime differenze rispetto a queste statistiche se le comunità rappresentano dei gruppi sociali ragionevoli. 
+I tre gruppi sono omogenei rispetto a grado e betweennes, mentre differiscono un po' per quanto riguarda la closeness. Quindi, possiamo concludere che il gruppo di troll catalogati come `Left` siamo _meno vicini_ tra loro rispetto agli altri. Questa caratteristica è di per sé interessante, e suggerisce che questo gruppo sia meno compatto e quindi più aperto anche a connessioni con l'esterno.
+Per approfondire queste considerazioni potremmo valutare, ad esempio, come la distanza geodesica vari tra i due gruppi, e se queste differenze siano dovute soltanto ad un alcuni nodi.
+
+<!--```{r grpr2}-->
+<!--```-->
+Una domanda naturale, a questo punto, è se la divisione in gruppi sia 'buona' in termini di coesione.
+
+```{r groups}
+```
+
+La divisione porta in effetti a valori molto alti di assortatività, confermando una forte _omofilia_ rispetto al gruppo.
+Tale risultato conferma che i troll tendono ad interagire maggiormente con altri che appartengono alla stessa sfera politica o di interesse, creando molte connessioni tra profili a loro simili e poche con quelli diversi.
+
+## Raggruppamento
+Possiamo fare di meglio? Cerchiamo di ottenere una partizione più interessante _stimando_ i gruppi sulla base delle connessioni (i gruppi di prima __non utilizzano__ queste informazioni!)
+
+```{r grLo}
+```
+Il metodo identifica K=`r max(membership(gr))` comunità (troppe?), e produce una partizione con modularità molto elevata.
+Che relazione c'è tra i gruppi identificati dal metodo di Louvain e quelli riferiti alla sfera di influenza?
+
+```{r grComp}
+```
+
+# Rappresentazioni grafiche
+Cerchiamo ora di ottenere una rappresentazione grafica convincente del dataset che stiamo analizzando.
+La libreria `igraph` contiene tutti (e molti altri) algoritmi che abbiamo visto per rappresentare graficamente le reti. Di fatto, già la rappresentazione di default produce risultati che ci dicono qualcosa (usa uno degli algoritmi che abbiamo visto a lezione!) anche se globalmente sono molto confusi a causa dell'elevato numero di etichette.
+
+```{r plot}
+```
+
+```{r plotlab}
+```
+Miglioriamo ulteriormente la rappresentazione grafica utilizzando alcuni algoritmi per indiziare le posizioni spaziali, e modificando dimensione e colore dei nodi.
+
+
+```{r plotSize,cache=T}
+```
+Proviamo ad utilizzare qualche layout migliore
+
+```{r layoutMDS,eval=F}
+```
+
+```{r layoutKK,eval=F}
+```
+
+```{r layoutFR,fig.width=10,fig.height=7,dpi=100,cache=T,fig.asp=1, fig.cap="FR"}
+```
+
+Gli ultimi due layout producono dei risultati decisamente soddisfacenti.
+
+## Grafici, parte 2
+Per migliorare ulteriormente le rappresentazioni grafiche, può valere la pena di spostarsi su dei pacchetti diversi.
+Gli strumenti in questioni sono `ggraph` e `tidygraph`, i quali uniscono gli strumenti di analisi di rete con quelli grafici forniti da `ggplot2` e affini.
+
+
+```{r ggraph,warning=F,fig.width=10,fig.height=7,dpi=100,cache=F,fig.asp=1}
+```
+
+Vogliamo utilizzare ora le comunità analizzate con il metodo di Louvain.
+
+```{r grComp,echo=F}
+```
+
+Può aver senso tenere solamente i gruppi "interessanti", e assegnare delle etichette che siano riconoscibili. 	
+
+```{r bettergr}
+```
+Alcuni chiarimenti: `1$` fa un match con la stringa `"1"`. Se non avessimo il carattere speciale `$`, allora farebbe match anche con la stringa `"10"`. 
+Infine, `\\d+` fa un match per 1 o più caratteri numerici (digits). Usiamo questa espressione con `"^\\d+"` per fare un match delle stringhe che iniziano con uno o più numeri.
+Oltre che ad essere più leggibili, portano anche una divisione ragionevole?
+
+```{r bettergrval}
+```
+
+
+```{r ggraph2,warning=F,fig.width=10,fig.height=7,dpi=100,cache=F,fig.asp=1}
+```
+
+Come ultima modifica, utilizziamo le funzionalità del pacchetto `tidygraph` per migliorare ulteriormente la rappresentazione grafica.
+Il pacchetto permette infatti di fare diverse manipolazioni sui dati di rete con una sintassi _a-la-_`dplyr`. Nello specifico, il frammento seguente distingue il colore degli archi in funzione dell'appartenenza ai gruppi dei nodi collegati dall'arco stesso.
+
+```{r graphnice,warning=F,fig.width=10,fig.height=7,dpi=100,cache=F,fig.asp=1}
+```

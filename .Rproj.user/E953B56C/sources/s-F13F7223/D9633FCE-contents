@@ -1,0 +1,334 @@
+#+++++++++++++++++++++++++++++++++++++++++
+# ANALISI DI DATI SU RETE - 08 Aprile 2019 
+#+++++++++++++++++++++++++++++++++++++++++
+
+## dati: conflitti tra paesi durante la guerra fredda, ogni cinque anni dal 1950 al 1985
+
+rm(list=ls())
+war = read.table('war.txt')
+war = as.matrix(war)
+str(war)
+
+war = 1*(war <  0)
+
+isSymmetric(war)
+lattice::levelplot(war)
+
+
+library(igraph)
+
+net = graph_from_adjacency_matrix(war, mode = 'undirected', weighted = NULL, diag=F)
+str(net)
+
+
+as.numeric(object.size(war) / object.size(net))
+
+
+### Analisi dei dati in quanto rete
+E(net)
+V(net)
+
+edge_density(net)
+
+
+vuoti = which(degree(net) < 1)
+net = delete.vertices(net,vuoti)
+
+## distribuzione del grado
+degree(net)
+hist(degree(net),breaks = 30,col='lavender')
+
+#?shortest_paths
+shortest_paths(net, from = 'ITA')
+
+V(net)[50]
+
+
+#altre misure viste a lezione
+hist(sqrt(betweenness(net)), breaks = 20, col = 'lavender')
+diameter(net)
+
+plot(net)
+
+
+set.seed(1)
+net_lo = layout_with_graphopt(net, niter =3500)
+plot(net,layout= net_lo)
+
+### Miglioriamo rimuovendo sconnessi
+rem = c('HAI', 'DOM', 'ARG', 'CHL') 
+net = delete.vertices(net, rem)
+
+set.seed(1)
+net_lo = layout_with_graphopt(net, niter =3500)
+
+###MIGLIORIAMO LA RAPPRESENTAZIONE GRAFICA
+V(net)$size = degree(net)+1
+plot(net, layout= net_lo)
+
+V(net)$size = sqrt(betweenness(net))
+plot(net, layout= net_lo)
+
+
+V = length(V(net))
+2^V
+choose(V,2)
+sum(choose(V,2:10))
+?cluster_optimal
+?cluster_fast_greedy
+comm = multilevel.community(net)
+comm2 = cluster_fast_greedy(net)
+
+
+
+gr = membership(comm)
+gr2 = membership(comm2)
+
+modularity(net,gr)
+modularity(net,gr2)
+
+assortativity(net,gr)
+assortativity(net,gr2)
+
+##Numero di clusters
+max(gr2)
+
+set.seed(1)
+net_col = as.vector(gr2)
+
+net_col
+
+
+V(net)$color = net_col
+plot(net, layout= net_lo)
+
+
+V(net)$label.color = 'white'
+V(net)$label.font = 2
+
+V(net)$size = pmin(sqrt(betweenness(net)), 10)+2
+par(bg='black')
+plot(net, layout= net_lo)
+
+
+#+++++
+# ERGM
+#+++++
+
+detach(package:igraph)
+library(ergm)
+
+#RIMOVIAMO NODI VUOTI
+
+rem_id = which(colnames(war) %in% rem)
+war_red = war[-c(rem_id, vuoti), -c(rem_id, vuoti)]
+
+net2 = as.network(war_red, directed=F)
+
+par(bg='white')
+plot(net2)
+summary(net2)
+
+
+
+m0 = ergm(net2~edges, estimate = 'MPLE')
+summary(m0)
+
+##COME INTERPRETARE I PARAMETRI
+exp(m0$coef)/(1+exp(m0$coef))
+plogis(m0$coef)
+##BANALMENTE, OSSERVARE UN ARCO AUMENTA LA PROBABILITA' DI TOT.
+
+summary(net2)
+
+
+m1 = ergm(net2~edges+triangles, estimate = 'MPLE')
+summary(m1)
+
+ergmMPLE(net2~edges+triangles)
+matr = ergmMPLE(net2~edges+triangles)
+
+glm(matr$response ~ -1 + matr$predictor, family = 'binomial', weights = matr$weights)
+
+###Come funziona:
+# Ogni riga corrispode ad un arco (response 0/1, presenza assenza). Valuto la change statistic, cioe
+#come cambia g(y) quando y_ij passa da 1 a 0 (o viceversa). Metto insieme tutti quelli per cui questo accade, e metto il totale in weights.
+
+
+##### interpretazione
+### se un arco non porta alcun triangolo
+plogis(coef(m1)[1])
+
+## Se un nodo porta un triangolo
+plogis(c(1,1) %*% coef(m1))
+
+## Se un nodo porta due triangoli
+plogis(c(1,2) %*% coef(m1))
+
+
+###GOF
+gof_m1 = gof(m1)
+gof_m1
+plot(gof(m1~degree))
+plot(gof(m1~distance))
+plot(gof(m1~triadcensus))
+
+
+
+## ESEMPIO DI MODELLO CON SCARSA PERFORMANCE 
+m2 = ergm(net2~edges + triangles + kstar(2:3), estimate = 'MPLE')
+summary(m2)
+
+temp = ergmMPLE(net2~edges + triangles + kstar(2:3))
+?plot.gof
+cor(temp$predict)
+gof_m2 = gof(m2)
+gof_m2
+plot(gof_m2)
+plot(gof(m2~degree))
+plot(gof(m2~distance))
+
+
+# ALTKSTARS O GWDEGREE SONO EQUIVALENTI
+#m3 = ergm(net2~edges + triangles + altkstar(,T), estimate = 'MPLE')
+m3 = ergm(net2~edges + triangles + gwdegree(.5, T), estimate = 'MPLE')
+summary(m3)
+
+###INTERPRETAZIONE NON BANALE
+# far diventare un nodo di grado k uno di grado k+1
+# modifica la proabilitá di exp(beta * (1-exp(-lambda))^k )
+
+inter = function(beta,deg,k=1:10) exp(beta*(1-exp(-deg))^k)
+plot(1:10, inter(.9,.5), type = 'b', col = 2)
+
+
+
+plot(gof(m3~degree))
+plot(gof(m3~distance))
+plot(gof(m3~triadcensus))
+
+lapply(list(m0,m1,m3),AIC)
+lapply(list(m0,m1,m3),BIC)
+
+summary(m3)
+
+
+#++++++++++++++++++
+# ANALISI CON PIL 
+#++++++++++++++++++
+
+#gdp = read.table('GDP.txt')
+
+#set.vertex.attribute(net2,'gdp',gdp)
+
+#m4 = ergm(net2~edges + triangles  + nodecov('gdp'), estimate = 'MPLE')
+#ergmMPLE( net2~edges + triangles  + nodecov('gdp'))
+#summary(m4)
+
+#++++++++++++++++++++++++++++++++++++++++++
+# MODELLO p1 (effetto specifico per paese) 
+#++++++++++++++++++++++++++++++++++++++++++
+
+require(latentnet)
+
+
+p1 = ergmm(net2~rsociality,tofit='MLE')
+summary(p1)
+
+soc_p = p1$mle$sociality
+
+p1$mle
+
+#Identificabilitá
+sum(soc_p)
+
+which(soc_p < 0)
+which(soc_p > 0)
+
+
+mat_soc = outer(soc_p,soc_p,"+")
+
+ita_id = which(names(soc_p) == 'ITA')
+ita=plogis(mat_soc[ita_id,-ita_id]+p1$mle$beta)
+summary(ita)
+ita
+
+which(names(soc_p) == 'USA')
+
+plogis(mat_soc[56,-56]+p1$mle$beta)
+usa = plogis(mat_soc[56,-56]+p1$mle$beta)
+summary(usa)
+
+which(usa > .5)
+
+V = length(p1$mle$soc)
+
+usa_col = rep('red',V)
+usa_col[which(usa < 0.5)] = 'blue'
+usa_col[56] = 'gold'
+
+plot(net2, vertex.col = usa_col) 
+
+
+pr_gen = plogis(mat_soc + p1$mle$beta)
+
+
+####################
+##VALUTIAMO AIC
+#####################
+
+-2*(length(p1$mle$soci) + p1$mle$lpY)
+
+
+
+#++++++++++++++++++++++++++++++++++++++++++
+# NON PREVEDE GOF, MA POSSIAMO FARLO A MANO
+#++++++++++++++++++++++++++++++++++++++++++
+
+
+Lt = lower.tri(pr_gen)
+l_tr = V *(V-1)/2 
+
+
+#Esempio, come simulare una rete dal modello p1
+# Manualmente, generando bernoulliane dalla prob di collegamento
+
+Y_sim = matrix(0,V,V)
+Y_sim[Lt] = rbinom(l_tr,1,pr_gen[Lt])
+Y_sim = Y_sim + t(Y_sim)
+plot(as.network(Y_sim,directed=F))
+
+
+gof_ergmm = function(pr_gen, nrep=10)
+{
+	degr = matrix(0,nrep,10)
+	Lt = lower.tri(pr_gen)
+	l_tr = sum(Lt)
+	
+	for(i in 1:nrep){
+	Y_sim = matrix(0, NCOL(Lt), NCOL(Lt))
+	Y_sim[Lt] = rbinom(l_tr,1,pr_gen[Lt])
+	Y_sim = Y_sim + t(Y_sim)
+	degr[i,] = tabulate(colSums(Y_sim),nbin=10)
+	}
+
+degr
+}
+
+
+sim = gof_ergmm(pr_gen,5000)
+
+boxplot(sim, xlab = 'Grado', ylab = 'Numero di nodi', border = 'gray')
+
+##Original data
+orig = tabulate(colSums(war[-vuoti,-vuoti],na.rm=T), 10)
+points(1:10,orig, col = 'red')
+lines(1:10,orig, col = 'red',lwd=5)
+lines(1:10, apply(sim,2,quantile,.975),lty = 3)
+lines(1:10, apply(sim,2,quantile,.025),lty=3)
+
+
+
+
+
+

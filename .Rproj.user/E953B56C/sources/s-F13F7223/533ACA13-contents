@@ -1,0 +1,54 @@
+```{r, echo = FALSE, results = "hide"}
+#(random tra 110 e 130)
+n <- sample(c(110:130),1)
+
+mono <- sample(c(60:75),1)
+phat <- round(mono/n,3)
+p0 <- phat - 0.13
+alpha <- sample(c(0.1, 0.05, 0.01),1)
+z <- round((phat - p0)/sqrt(p0*(1-p0)/n),3)
+vc <- round(qnorm(1-alpha),3)
+pvalue <- round(1- pnorm(z),3)
+  
+sol<-c(paste0('$H_0: \\hat{p} \\le$', p0, 'vs $H_1: \\hat{p} >$', p0), z, pvalue, "SI, RIFIUTO H0")
+```
+
+Question
+========
+Si vuole stimare la frazione di persone che utilizzano il monopattino per raggiungere il lavoro. In un c.c.s. di `r n`, individui, è risultato che `r mono` lo utilizzano. Si sa inoltre che, in passato, tale frazione era pari a `r p0`
+
+Answerlist
+----------
+* Si può affermare che la frazione di coloro che utilizzano il monopattino è aumentata? Scrivere il sistema di ipotesi  
+
+* Eseguire una verifica d’ipotesi di livello `r alpha`. Calcolare la statistica test osservata.
+
+* Calcolare il livello di significatività osservato. 
+
+* Il test è significativo? Si rifiuta o no l’ipotesi nulla? Commentare i risultati ottenuti.
+
+
+
+<br><br><b>Importante:</b> Arrotondare usando <b>3 cifre decimali</b> dopo la virgola. Ad esempio: $1{,}3335\rightarrow 1{,}334$ e $1{,}3332\rightarrow 1{,}333$. Usare la virgola come separatore dei decimali.</br></br>
+
+
+Solution
+========
+
+
+Answerlist
+----------
+* $H_0: \hat{p} \le `r p0`$ vs $H_1: \hat{p} > `r p0`$
+
+* `r z` 
+
+* `r pvalue`  
+
+* Rifiutiamo $H_0$, valore critico: `r vc` minore della stat test `r z`, pvalue `r pvalue`
+
+Meta-information
+================
+extype: cloze
+exsolution: `r sol[1]` |`r sol[2]` |`r sol[3]` |`r sol[4]` 
+exname: prop
+extol: 0.01
