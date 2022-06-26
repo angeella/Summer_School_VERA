@@ -1,6 +1,6 @@
 <img src="https://github.com/angeella/Summer_School_2022_VERA/blob/main/Lab01/unive_0.jpg" align="right" alt="" width="200" />
 
-# Summer School on Network Econometrics 
+# [Summer School on Network Econometrics](https://sites.google.com/view/robertocasarin/netschool2022) 
 
 ## Materials for summer school 2022 - VERA - SIdE - Venice
 
