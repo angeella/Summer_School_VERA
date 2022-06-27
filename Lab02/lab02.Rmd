@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning
 
 # Introduction
 
-The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for the material.
+The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for sharing part of this material. 
 
 In network maps several key elements are used to control the outcome. The major ones are *color*, *size*, *shape*, and *position*.
 
@@ -46,15 +46,15 @@ The main package we are going to use is the package `igraph`.
 install.packages("igraph") 
 ```
 
-# 3 million Russian troll tweets
+# An example of neural network: 3 million Russian troll tweets
 
-In this tutorial, we will analyze data used in the FiveThirtyEight story [Why We’re Sharing 3 Million Russian Troll Tweets](https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/). The original dataset is composed by $3$ million of tweets from suspected twitter account. The data are preprocessed, if you want to see the original data set, please see this [link](https://www.kaggle.com/fivethirtyeight/russian-troll-tweets).
+In this tutorial, we will analyze data used in the *FiveThirtyEight* story [Why We’re Sharing 3 Million Russian TrollTweets](https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/). The original data set is composed by $3$ million of tweets from suspected twitter account. The data are prepossessed, if you want to see the original data set, please see this [link](https://www.kaggle.com/fivethirtyeight/russian-troll-tweets).
 
-We want to analyze the interaction structure between these twitter profiles, excluding (in this case) the interaction (comment/retweet), the direction, and the number of time this interaction appear (size of the edge). You can find the dataset in the `Datasets` folder. It is composed by two matrices, `Y` descibes the edges (two-column matrix, where each row defines one edge), while `X` report some information about the nodes (i.e., twitter profiles, $1245$ in total):
+We want to analyze the interaction structure between these twitter profiles, excluding (in this case) the interaction (comment/re tweet), the direction, and the number of time this interaction appear (size of the edge). You can find the data set in the `Datasets` folder. It is composed by two matrices, `Y` describes the edges (two-column matrix, where each row defines one edge), while `X` report some information about the nodes (i.e., twitter profiles, $1245$ in total):
 
-- *accountcategory*: main category for type of account, e.g., Commercial, NewsFeed, etc;
+- *accountcategory*: main category for type of account, e.g., Commercial, NewsFeed, etc (macro category);
 
-- *accounttype*: type of account;
+- *accounttype*: type of account (thinner account category than `accountcategory`);
 
 - *activity*: number of activities;
 
@@ -81,6 +81,8 @@ load("Datasets/russian_trolls.RData")
 library(igraph)
 ```
 
+So, let transform our data set to a `graph`:
+
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
 __R commands__ 
@@ -104,7 +106,7 @@ __Comments__
 :::
 ::::
 
-> `r emo::ji("boom")` **_Please note_** _you can create the `igraph` graph object also if you have a data.frame thanks to the `graph_from_data_frame` function (or you can transform the edgelist as data.frame or reverse). There is also the function `graph_from_adjacency_matrix` to create an `igraph` graph object from adjancency matrices._
+> `r emo::ji("boom")` **_Please note_** _you can create the `igraph` graph object also if you have a data.frame thanks to the `graph_from_data_frame` function (or you can transform the edgelist as data.frame or reverse). There is also the function `graph_from_adjacency_matrix` to create an `igraph` graph object from adjacency matrices._
 
 Let take a look of our new graph:
 
@@ -114,12 +116,12 @@ summary(net)
 
 The `igraph` objects is described by four letters:
 
-1. *D* or U for directed or undirected graph
-2. *N* for named graph (where nodes have a name attribute)
-3. *W* for a weighted graph (where edges have a weight attribute)
-4. *B* for a bipartite (two-mode) graph (where nodes have a type attribute)
+1. *D* or U for directed or undirected graph;
+2. *N* for named graph (where nodes have a name attribute);
+3. *W* for a weighted graph (where edges have a weight attribute);
+4. *B* for a bipartite (two-mode) graph (where nodes have a type attribute).
 
-So, there are two numbers (1245 and 2857) which refer to the number of nodes and edges in the graph.
+So, there are two numbers ($1245$ and $2857$) which refer to the number of nodes and edges in the graph.
 
 Then, we have the list of node and edge attributes. For example (v/c) is vertex-level character attribute.
 
@@ -148,6 +150,9 @@ __Comments__
 # Degree, geodesic distance, closeness, and betweenness
 
 First of all, we will eliminate the nodes without connections, i.e., degree equals $0$.
+
+`r emo::ji("boom")` **Remember**: The degree indicates the number of adjacent
+nodes, that is the number of nodes to which the node is connected. It measures how connected a node is, so it is a local measure.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -181,18 +186,18 @@ hist(D_net,nclass = 100, main = "Degree distribution", xlab = "Degree")
 hist(igraph::degree(net,normalized = T),nclass=100, main = "Degree distribution (normalized)", xlab = "Normalized degree")
 ```
 
-We can compute also the graph density, which is the ratio of the number of edges and the number of possible edges.
+The normalized degrees are simply the degrees divided by $(V-1)$ where $V$ is the number of nodes. So, we have a measure with range $[0,1]$.
+
+We can compute also the **graph density**, which is the ratio of the number of edges and the number of possible edges (i.e., it is a global measure):
 
 ```{r}
 edge_density(graph = net)
 ```
 
 
-The network follows a `` power-law`` structure, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. Clearly the shape of the distribution does not change when considering the normalised or absolute quantity (all degrees are divided by $(V - 1)$). The distribution of normalised degrees, however, allows us to observe that even the most connected nodes present a small number small number of connections, compared to the size of the network. This result is not surprising,
-if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
+The network follows a `` power-law`` structure, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. Clearly the shape of the distribution does not change when considering the normalized or absolute quantity. The distribution of normalized degrees, however, allows us to observe that even the most connected nodes present a small number small number of connections, compared to the size of the network. This result is not surprising, if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
 
-
-A fundamental concept is the *geodesic distance*, i.e., the length of the shortest path connecting two nodes. The `igraph` library computes this quantities efficiently. For example, to calculate the path connecting two nodes,
+A fundamental concept is the **geodesic distance**. The `igraph` library computes this quantities efficiently. For example, to calculate the path connecting two nodes:
 
 ```{r}
 shortest_paths(graph = net,from = "aiden7757",to = "_nickluna_")$vpath
@@ -200,7 +205,9 @@ shortest_paths(graph = net,from = "aiden7757",to = "_nickluna_")$vpath
 
 So, the shortest path includes $5$ vertices names `aiden7757`, ` andyhashtagger`, `bgarner2107`, `politweecs` and `_nickluna_`.
 
-We are now interested to compute the mean distance between nodes, i.e., the mean length of the paths:
+`r emo::ji("boom")` **Remember**: The geodesic distance is the length of the shortest path connecting two nodes.
+
+We are now interested to compute the **mean distance between nodes**, i.e., the mean length of the paths:
 
 ```{r}
 average.path.length(graph = net)
@@ -214,11 +221,11 @@ S = distances(graph = net)
 image(S,col = gray.colors(n = diameter(net)))
 ```
 
-In addition to the *degree*, there are other measures to assess the importance of a node within the network. The most important are 
+`r emo::ji("boom")` **Remember**: In addition to the *degree*, there are other local measures to assess the importance of a node within the network. The most important are 
 
-- *closeness*: how many steps is required to access every other vertex from a given vertex.
+- *closeness*: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes.
 
-- *betweenness*: the number of geodesics (shortest paths) going through a vertex or an edge.
+- *betweenness*: the number of geodesics (shortest paths) going through a vertex or an edge, i.e., how relevant is a node in terms of connecting other nodes in a graph.
 
 ```{r}
 C_net = igraph::closeness(graph = net)
@@ -232,7 +239,7 @@ subg = components(graph = net)
 subg$csize
 ```
 
-The network we are analysing has a very extensive component, consisting of 1149 nodes, and several components consisting of very few nodes (2 or 4). There is also a component formed by 35 nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
+The network we are analysing has a very extensive component, consisting of $1149$ nodes, and several components consisting of very few nodes ($2$ or $4$). There is also a component formed by $35$ nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
 
 ```{r}
 net = igraph::delete.vertices(net, which(subg$membership != 1))
@@ -256,30 +263,36 @@ hist(B_net, breaks = 50)
 ```
 
 Closeness presents a bimodal distribution, with one around $0.16$ and another on higher values. Betweenness, on the other hand, presents a strongly asymmetrical distribution.
+
 For example,
 
 ```{r}
 sum(B_net > .1)
 ```
 
-We observe that only 6 nodes have a betweennes greater than 0.1.
-We might also ask if and how these statistics are related. For example, as
-as the degree increases, so do betwennes and closeness?
+We observe that only 6 nodes have a betweennes greater than $0.1$. We might also ask if and how these statistics are related. 
+
+
+> **_Question:_** _As as the degree increases, so do betwennes and closeness?_
+
+Let compute the correlation between these measures:
 
 ```{r}
 cor(cbind(B_net,D_net,C_net))
 ```
+
+and corresponding pair plots:
 
 ```{r}
 library(GGally)
 ggpairs((data.frame(B_net,D_net,C_net))) + theme_bw()
 ```
 
-The data suggest that there is some association between grade and betweennes (as one might expected in this example).
+The data suggest that there is some association between **degree** and **betweennes**.
 
 # Network and group
 
-The Russian troll network is clearly characterised by different groups. Of particular interest is, for instance, the type of account, which is divided into several macro-categories. There is also a less fine division.
+The Russian troll network is clearly characterized by different groups. Of particular interest is, for instance, the type of account (i.e., `accounttype` variable), which is divided into several macro-categories. There is also a less fine division, i.e., the `accountcategory` variable.
 
 ```{r}
 aType = vertex_attr(graph = net,name="accounttype")
@@ -297,8 +310,9 @@ aType = str_replace(aType,"^$|Arabic|\\?", "Other")
 table(aType)
 ```
 
-At this point, we may be interested in some characteristics of our groups. For
-for example, how does the distribution of rank and centrality vary between the three largest groups?
+At this point, we may be interested in some characteristics of our groups. 
+
+> **_Question:_** _How does the distribution of degree, betweeness and  closeness centrality vary between the three largest groups?_
 
 ```{r}
 require(tidyverse)
@@ -306,52 +320,92 @@ df_pl = data.frame(den=D_net, clos = C_net, bet = B_net, x=aType)
 #gather(df_pl,"den","clos","bet")
 df_pl %>% dplyr::filter(x %in% c("Right","Left","Russian")) %>%
 gather(.,"den","clos","bet",key="stat",value = "value") %>%
-ggplot(aes(value,after_stat(density),color=x)) + geom_freqpoly(lwd=1)+ facet_wrap(~stat,scales="free")+ theme_bw()
+ggplot(aes(value,after_stat(density),color=x)) + 
+  geom_freqpoly(lwd=1)+ 
+  facet_wrap(~stat,scales="free")+ 
+  theme_bw()
 ```
 
-As discussed in class, in general we do not expect there to be much difference from these statistics if the communities represent reasonable social groups. I
-three groups are homogeneous with respect to degree and betweenness, while they differ somewhat in
-with respect to closeness. Thus, we can conclude that the group of trolls categorised
-as Left are less close to each other than the others. This characteristic is in itself
-interesting, and suggests that this group is less compact and therefore also more open
-to connections with the outside world. To explore these considerations further, we could evaluate
-for instance, how the geodesic distance varies between the two groups, and whether these differences are due to
-due only to a few nodes.
-A natural question at this point is whether the division into groups is 'good' in terms of
-cohesion.
+In general we do not expect there to be much difference from these statistics if the communities represent reasonable social groups. The three groups are homogeneous with respect to degree and betweenness, while they differ somewhat in with respect to closeness. Thus, we can conclude that the group of trolls categorized as Left are less close to each other than the others. This characteristic is in itself interesting, and suggests that this group is less compact and therefore also more open to connections with the outside world. To explore these considerations further, we could evaluate for instance, how the geodesic distance varies between the two groups, and whether these differences are due only to a few nodes.
+
+A natural question at this point is whether the division into groups is ``good'' in terms of cohesion.
 
 ```{r}
 modularity(net,factor(aType))
 assortativity(net,factor(aType))
 ```
 
-The division actually leads to very high values of assortativity, confirming a strong homophily
-with respect to the group. This result confirms that trolls tend to interact more
-with others belonging to the same political sphere or sphere of interest, creating many connections
-between profiles that are similar to them and few with those that are different.
+`r emo::ji("star")` **Remember**:
+
+- *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections.
+
+- *assortativity*: normalized modularity. It is positive if similar vertices (based on some external property, e.g., `aType`) tend to connect to each, and negative otherwise. Assortativity close to $1$ indicates strong cohesion between groups. Empirically, values greater than $0.3$ suggest that the communities found are non-trivial.
+
+The division actually leads to very high values of *assortativity*, confirming a strong homophily with respect to the group. 
+
+This result confirms that trolls tend to interact more with others belonging to the same political sphere or sphere of interest, creating many connections between profiles that are similar to them and few with those that are different.
 
 # Subgroups and communities
 
-Can we do better? We try to obtain a more interesting partition by estimating the
-groups on the basis of connections (the groups from before do not use this information!).
+**Can we do better?** 
+
+We try to obtain a more interesting partition by estimating the groups on the basis of connections (the groups from before do not use this information!).
+
+**Objective**: To divide the network into communities of nodes, so that nodes within each community have many connections between them, while nodes in different communities have few connections. There are a lot of approaches:
+
+- *Louvain method*
+
+- *Stochastic block models*
+
+- *Spectral methods*
+
+- etc
+
+Here, we will apply the first one, the Louvain method, we will not go into details, but it find community (subgraphs) optimazing the modularity measure.
+
 
 ```{r}
 gr = cluster_louvain(graph = net)
 #gr2 = cluster_fast_greedy(graph = net)
+```
+
+Note that the `cluster_louvain(x)` function as other `cluster_` function of the package `igraph` returns and object of class `communities`:
+
+```{r}
+class(gr)
+```
+
+This is useful since if we have a `communities` class object, we can call other operations related to this class like:
+
+- `membership(x)`: gives the division of the vertices, into communities. It returns a numeric vector, one value for each vertex, the id of its community. Community ids start from one;
+
+- `modularity(x)`: gives the modularity score of the partitioning.
+
+```{r}
 table(membership(gr))
 assortativity(net,membership(gr))
 ```
 
-The method identifies K=10 communities (too many?), and produces a partition with very high modularity. What is the relationship between the groups identified by the Louvain method and those referred to the sphere of influence?
+The method identifies $K=11$ communities (too many?), and produces a partition with very high *modularity*:
+
+```{r}
+modularity(gr)
+```
+
+So, summing up  `modularity(x)` can take as input the graph with the membership vector of the community structure or directly the `community` objects.
+
+> **_Question:_** _What is the relationship between the groups identified by the *Louvain* method and those referred to the sphere of influence, i.e., the `aType` variable?_ 
+
 
 ```{r}
 table(membership(gr), aType)
 ```
 
+`r emo::ji("boom")` **Please note**! If you do not have a large graph (i.e., graphs with up to fifty vertices), you can use the `cluster_optimal` function which calculates the optimal community structure of a graph, by maximizing the *modularity* measure over all possible partitions.
 
 # Concluding
 
-> `r emo::ji("boom")` **_Please note_** _save your workspace! We will use the objects created today in the next tutorial._
+> `r emo::ji("boom")` **_Please note_** _save your workspace! We will use the objects created now in the next tutorial._
 
 ```{r}
 save(list = ls(), file = "lab02.RData")

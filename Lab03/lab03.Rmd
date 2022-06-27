@@ -27,19 +27,22 @@ geometry: margin = 1in
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning = F, message = F)
 rm(list = ls())
+#load("Lab02/lab02.RData")
 ```
 
 # Introduction
 
 The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for the material.
 
-In this tutorial, we will see how to represent graphically our network. First of all, you must load the `.RData` created in the previous tutorial:
+In this tutorial, we will see how to represent graphically our network, plotting also the attributes related to the nodes and edges.
+
+First of all, you must load the `.RData` created in the previous tutorial:
 
 ```{r}
 load("../Lab02/lab02.RData")
 ```
 
-We will use the packages `igraph` and `ggraph`.
+We will use the packages `igraph` and `ggraph`. The difference between these two packages is that `ggraph` is based on `ggplot` structure/language, while `igraph` uses basic `R` language. Both are useful, you can use the one that best fits with you!
 
 ```{r}
 library(igraph)
@@ -76,7 +79,7 @@ plot(net,
 ::: {}
 __Comments__ 
 
-* `V(net)$name[which(B_net < quantile(B_net, .99))] = NA`: Delete vertices having betweeness value lower than the quantile at level $.99$;
+* `V(net)$name[which(B_net < quantile(B_net, .99))] = NA`: Delete vertices having betweeness (object `B_net`) value lower than the quantile at level $.99$;
 * `vertex.label`: change the label of the nodes;
 * `vertex.label.color`: change the color of the nodes' labels;
 * `edge.color`: change the color of the edges;
@@ -86,13 +89,14 @@ __Comments__
 :::
 ::::
 
-We further improve the graphical representation by using some algorithms to clue spatial positions, and by modifying the size and color of the nodes.
+We can also further improve the graphical representation by using some **algorithms to clue spatial positions**, and by modifying the size and color of the nodes.
 
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
 __R commands__ 
 ```{r}
+set.seed(1234)
 plot(net, 
      vertex.size = .5*log(igraph::betweenness(net)+1),
      vertex.color = as.numeric(factor(aType)),
@@ -107,7 +111,7 @@ plot(net,
 ::: {}
 __Comments__ 
 
-* `vertex.size`: change the size of the vertex. In this case we use a trasformation of the *betweenness* measure;
+* `vertex.size`: change the size of the vertex. In this case we use a transformation of the *betweenness* measure;
 * `vertex.color`: change the color of the nodes. In this case we use as information the type of twitter account analyzed.
 :::
 ::::
@@ -124,11 +128,16 @@ E(net)$arrow.size<-.2
 E(net)$edge.color<-"gray80"
 ```
 
+```{r}
+set.seed(1234)
+plot(net)
+```
+
+`r emo::ji("boom")` **Please note**! Here we fix the seed using the function `set.seed(x)` since the default `layout` used by the `plot.igraph` function is `layout_nicely`, a smart function that chooses a layouter based on the graph. Some layout algorithm are not deterministic. For further information, see `?layout_nicely`.
+
 ## Network layout
 
 We can even set a specific network layout. In very short terms, a **layout** is the vertical and horizontal placement of nodes when plotting a particular graph structure. Conversely, a layout algorithm is an algorithm that takes in a graph structure (and potentially some additional parameters) and return the vertical and horizontal position of the nodes. Often, when people think of network visualizations, they think of node-edge diagrams where strongly connected nodes are attempted to be plotted in close proximity. Layouts can be a lot of other things too though — e.g. hive plots and treemaps. 
-
-
 
 1. **Graph layout by multidimensional scaling**
 
@@ -142,7 +151,7 @@ plot(net,layout= llMDS)
 
 2. **The Fruchterman-Reingold layout algorithm**
 
-Fruchterman-Reingold (**FR**) is one of the most used force-directed layout algorithms out there. Force-directed layouts try to get a nice-looking graph where edges are similar in length and cross each other as little as possible. They simulate the graph as a physical system. Nodes are electrically charged particles that repulse each other when they get too close. The edges act as springs that attract connected nodes closer together. As a result, nodes are evenly distributed through the chart area, and the layout is intuitive in that nodes which share more connections are closer to each other. The disadvantage of these algorithms is that they are rather slow and therefore less often used in graphs larger than ~1000 vertices.
+Fruchterman-Reingold (**FR**) is one of the most used force-directed layout algorithms out there. Force-directed layouts try to get a nice-looking graph where edges are similar in length and cross each other as little as possible. They simulate the graph as a physical system. Nodes are electrically charged particles that repulse each other when they get too close. The edges act as springs that attract connected nodes closer together. As a result, nodes are evenly distributed through the chart area, and the layout is intuitive in that nodes which share more connections are closer to each other. The disadvantage of these algorithms is that they are rather slow and therefore less often used in graphs larger than ~$1000$ vertices.
 
 ```{r}
 set.seed(1)
@@ -153,7 +162,7 @@ l <- layout_with_fr(net, niter=5000)
 
 With force-directed layouts, you can use the `niter` parameter to control the number of iterations to perform. The default is set at $500$ iterations. You can lower that number for large graphs to get results faster and check if they look reasonable.
 
-You will also notice that the Fruchterman-Reingold layout is not deterministic- different runs will result in slightly different configurations. Saving the layout in `l` allows us to get the exact same result multiple times, which can be helpful if you want to plot the time evolution of a graph, or different relationships– and want nodes to stay in the same place in multiple plots.
+You will also notice that the **Fruchterman-Reingold** layout is not deterministic- different runs will result in slightly different configurations. Saving the layout in `l` allows us to get the exact same result multiple times, which can be helpful if you want to plot the time evolution of a graph, or different relationships– and want nodes to stay in the same place in multiple plots.
 
 ```{r}
 par(mfrow=c(2,2), mar=c(0,0,0,0)) # plot four figures- 2 rows, 2 columns 
@@ -221,10 +230,110 @@ for(layout in layouts){
 }
 ```
 
+`r emo::ji("boom")` **Please note**! You can find the full list of network layout available typing `?layout`.
+
+## Communities
+
+We can also try to make the network map more useful by showing the communities within it. So, let take the communities computed by `cluster_louvain` in the previous laboratory (i.e., `gr` objects):
+
+```{r}
+V(net)$community <- gr$membership 
+colrs <- adjustcolor(sample(colors(distinct = TRUE),11), alpha=.6) 
+plot(net, 
+     vertex.color=colrs[V(net)$community],
+     vertex.label = NA)
+```
+
+## Nodes and edges
+
+Sometimes we want to focus the visualization on a particular **node** or a group of nodes.
+
+The `distances` function returns a matrix of shortest paths from nodes listed in the `v` parameter to ones included in the `to` parameter.
+
+```{r}
+dist.from.Left <- distances(net, v=V(net)[aType=="Left"], to=V(net), weights=NA)
+
+oranges<-colorRampPalette(c("darkred","gold"))
+col<-oranges(max(dist.from.Left)+1) 
+col<-col[dist.from.Left+1] 
+
+plot(net,
+     vertex.color=col,
+     vertex.label=dist.from.Left,
+     vertex.label.color = "white")
+```
+
+In this case we have $125$ nodes referred to the category Russian having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r length(col)` different colors, one for each distance value, to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
+
+We can also highlight a path in the network, for example the shortest path from a vertex with Russian account category to a vertex with Right account category.
+
+```{r}
+right.path<-shortest_paths(net,
+                        from=V(net)[aType=="Left"],
+                        to=V(net)[aType=="Right"], 
+                        output="both")
+
+ecol<-rep("gray80",ecount(net)) 
+ecol[unlist(right.path$epath)]<-"orange" 
+ew<-rep(2,ecount(net)) 
+ew[unlist(right.path$epath)]<-4  
+vcol<-rep("gray40",vcount(net)) 
+vcol[unlist(right.path$vpath)]<-"gold" 
+plot(net,
+     vertex.color=vcol,
+     edge.color=ecol, 
+     edge.width=ew,edge.arrow.mode=0)
+```
+
+We can highlight the edges going into or out of a vertex, for instance the `Left`. For a single node, use `incident()`, for multiple nodes use `incident_edges()`:
+
+```{r}
+inc.edges <- incident(net, V(net)[aType=="Left"], mode="all") 
+ecol <- rep("gray80", ecount(net)) 
+ecol[inc.edges] <- "orange" 
+vcol <- rep("grey40", vcount(net)) 
+vcol[V(net)$aType=="News"] <- "gold" 
+plot(net, 
+     vertex.color=vcol, 
+     edge.color=ecol)
+```
+
+We can also point to the immediate neighbors of a vertex, say again Left The neighbors function finds all nodes one step out from the focal actor. To find the neighbors for multiple nodes, use `adjacent_vertices()` instead of `neighbors()`. To find node neighborhoods going more than one step out, use function `ego()` with parameter order set to the number of steps out to go from the focal node(s).
+
+```{r}
+neigh.nodes <- neighbors(net, V(net)[aType=="Left"], mode="out")
+vcol[neigh.nodes] <- "#ff9d00" 
+plot(net, vertex.color=vcol)
+```
+
+A way to draw attention to a group of nodes (we saw this before with communities) is to ``mark'' them:
+
+```{r}
+par(mfrow=c(1,2)) 
+plot(net, mark.groups=c(1,4,5,8), mark.col="#C5E5E7", mark.border=NA) 
+# Mark multiple groups: 
+plot(net, mark.groups=list(c(1,4,5,8), c(15:17)), mark.col=c("#C5E5E7","#ECD89A"), mark.border=NA)
+```
+
+## Interactive plotting with tkplot
+
+`R` and `igraph` allow for interactive plotting of networks. This might be a useful option for you if you want to tweak slightly the layout of a small graph. After adjusting the layout manually, you can get the coordinates of the nodes and use them for other plots.
+
+We use the function `tkplot` and `tkplot.getcoords`
+
+```{r, eval = FALSE}
+#do not run!
+tkid <- tkplot(net) #tkid is the id of the tkplot that will open 
+l <- tkplot.getcoords(tkid) # grab the coordinates from tkplot 
+plot(net, layout=l)
+```
+
 
 # Beyond igraph: the ggraph package
 
 The `ggplot2` package and its extensions are known for offering the most meaningfully structured and advanced way to visualize data in R. In `ggplot2`, you can select from a variety of visual building blocks and add them to your graphics one by one, a layer at a time. The `ggraph` package takes this principle and extends it to network data. In this section, we’ll only cover the basics without providing a detailed overview of the grammar of graphics approach. For a deeper look, it would be best to get familiar with `ggplot2` first, then learn the specifics of `ggraph`. One good news is that we can use our igraph objects directly with the `ggraph` package. The following code gets the data and adds separate layers for nodes and links.
+
+We can do everything done with the `igraph` package using the `ggraph` package; however, the layout is generally fancier, especially for a large neural network.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -320,7 +429,7 @@ assortativity(net, as.factor(groupL))
 
 ```{r}
 df = as_tbl_graph(net)
-df %>% mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+df %>% mutate(btw= centrality_betweenness()) %>%
 ggraph(layout="fr") + 
   geom_edge_link(show.legend = FALSE,color="gray") +
   geom_node_point(aes(colour = groupL,size= btw),alpha =
@@ -365,7 +474,6 @@ __Comments__
 So, we create the new variable `e_col` considering the community of the nodes for each edge. 
 :::
 ::::
-
 
 
 

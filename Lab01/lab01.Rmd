@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning
 
 This first tutorial covers basics of `R`, a gentle reminder. Therefore, you will need to install `R` and `Rstudio`. 
 
-You can find all the material for these tutorials [here!](https://github.com/angeella/summer_school_2022_VERA) 
+You can find all the material for these tutorials [here!](https://github.com/angeella/summer_school_2022_VERA). Special thanks also to Ilaria Bussoli for sharing part of this material. 
 
 # use...R!
 
@@ -97,7 +97,7 @@ Error in library(dplyr) : there is no package called dplyr
 means that you must install the package ``dplyr``. 
 `r emo::ji("smile")` 
 
-`r emo::ji("boom")` _Please note_: find errors/bugs on google or [stackoverflow](https://stackoverflow.com)!
+`r emo::ji("boom")` **Please note**! find errors/bugs on google or [stackoverflow](https://stackoverflow.com)!
 
 <center>
 ![](Images/stackoverflow.png){ width=30% }
@@ -154,7 +154,7 @@ __Comments__
 <= #less equal
 ```
 
-`r emo::ji("boom")` _Please note_: The symbols ``=`` and ``<-`` are used to assign a value to a variable
+`r emo::ji("boom")` **Please note**! The symbols ``=`` and ``<-`` are used to assign a value to a variable
 
 ```{r, echo = T, eval = F}
 pluto = "hello"
@@ -172,7 +172,7 @@ Let see some examples together:
 3<20
 ```
 
-`r emo::ji("boom")` **Please note**:
+`r emo::ji("boom")` **Please note**!
 
 ```{r, echo = T, eval = F}
 TRUE==1
@@ -393,7 +393,7 @@ mean = mean(DB$HappinessScore),
 quantile075 = quantile(DB$HappinessScore, 0.75),
 max = max(DB$HappinessScore))
 rownames(out) <- NULL #remove rownames of the objects out
-knitr::kable(out)
+out
 ```
 
 ## Exploratory plots
@@ -800,7 +800,7 @@ anova(lm.fit.simple, lm.fit.nonlinear)
 
 The `anova()` function performs a hypothesis test comparing the two models. The null hypothesis is that the two models fit the data equally well, and the alternative hypothesis is that the model with both linear and quadratic terms is superior. Here the $F$-statistic is 135 and the associated $p$-value is virtually zero. This provides very clear evidence that the model containing the predictors `Beer_PerCapita` and `Beer_PerCapita`$^2$ is far superior to the model that only contains the predictor `Beer_PerCapita`.
 
-__Question:__ _Is this surprising or not? And what can we say from the diagnostics below?_
+> **_Question:_** _Is this surprising or not? And what can we say from the diagnostics below?_
 
 ```{r nonLinearVar3, fig.height=10, fig.width=10, echo=c(1,2,4,5)}
 par(mfrow = c(2,2))
