@@ -67,7 +67,7 @@ First of all, let's try `R`, but `Rstudio` is simpler:
 
 # Packages for everyone!
 
-`R` provides a number of packages (**packages**) that contain very useful functions of various kinds. For example with the following commands:
+`R` provides a number of **packages** that contain very useful functions of various kinds. For example with the following commands:
  
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -118,7 +118,7 @@ Logical operators correspond to the following symbols:
 ::: {}
 __R commands__ 
 
-```{r dat_structure, eval = FALSE}
+```{r, eval = FALSE}
 # Variable "Country"
 DB$Country <- as.factor(DB$Country) 
 levels(DB$Country)
@@ -588,6 +588,11 @@ _A little comment:_ When we split the original data set in training and test and
 > **_Question:_** _What could happen if categorical variable $X$ has all its levels in the training set but not in the test set? And if it has all its levels in the test set, but not the training one?_
 
 # Linear regression
+
+<center>
+![](Images/regression.png){ width=70% }
+</center> 
+<br>
 
 ## The model
 

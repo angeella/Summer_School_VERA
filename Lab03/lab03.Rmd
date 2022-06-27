@@ -169,6 +169,7 @@ plot(net, layout=l)
 Another popular force-directed algorithm that produces nice results for connected graphs is Kamada Kawai (**KK**). Like Fruchterman Reingold, it attempts to minimize the energy in a spring system.
 
 ```{r}
+par(mfrow= c(1,1))
 set.seed(1)
 llKK = layout_with_kk(net,dim = 2,maxiter = 100*vcount(net))
 plot(net,layout= llKK)
@@ -191,16 +192,17 @@ l2 <- layout_with_graphopt(net, charge=0.00000001)
 par(mfrow=c(1,2), mar=c(1,1,1,1)) 
 plot(net, layout=l1) 
 plot(net, layout=l2)
-dev.off()
+
 ```
 
 
 
-4. **Large Graph Layout**
+5. **Large Graph Layout**
 
 The Large Graph Layout (**LGL**) algorithm is meant for large, connected graphs. Here you can also specify a root: a node that will be placed in the middle of the layout.
 
 ```{r}
+par(mfrow=c(1,1))
 graph_attr(net,"layout")<-layout_with_lgl 
 plot(net)
 ```
@@ -210,8 +212,8 @@ Let’s take a look at all available layouts in `igraph`:
 ```{r}
 layouts <- grep("layout_", ls("package:igraph"), value=TRUE)[-c(1:2)]
 
-layouts <- layouts[!grepl("bipartite|merge|norm|sugiyama|tree", layouts)] 
-par(mfrow=c(3,3), mar=c(1,1,1,1)) 
+layouts <- layouts[grepl("attr|graphopt|with_kk|with_fr|with_mds", layouts)] 
+par(mfrow=c(2,2), mar=c(1,1,1,1)) 
 for(layout in layouts){ 
   print(layout) 
   l <- do.call(layout, list(net)) 
@@ -219,7 +221,6 @@ for(layout in layouts){
 }
 ```
 
-We can also try to make the network map more useful by showing the communities within it:
 
 # Beyond igraph: the ggraph package
 
@@ -231,7 +232,6 @@ __R commands__
 
 ```{r}
 library(ggraph) 
-library(igraph) 
 ggraph(net) + 
   geom_edge_link(color = "gray70") + 
   geom_node_point(color = V(net)$color) + 
@@ -256,15 +256,14 @@ __R commands__
 ```{r}
 library(tidygraph)
 df = as_tbl_graph(net)
-pl = df %>% mutate(btw= centrality_betweenness()) %>%
+df %>% mutate(btw= centrality_betweenness()) %>%
 ggraph(layout="fr") + 
   geom_edge_link(show.legend = FALSE, color="gray70") +
   geom_node_point(aes(colour = aType, size= btw), show.legend=T) + 
   geom_node_label(aes(label=label))+
   scale_size(guide="none") + 
   theme_graph(base_family='sans') +
-  theme(legend.position = "bottom") + 
-pl
+  theme(legend.position = "bottom")
 ```
 :::
 ::: {}
@@ -302,6 +301,7 @@ So, here we aggregate some communities if the frequency is low.
 It may make sense to keep only the ``interesting'' groups, and to assign labels that are recognizable:
 
 ```{r}
+library(stringr)
 table(groupL, aType)
 groupL = str_replace(groupL, "1$", "Russian")
 groupL = str_replace(groupL, "2", "Right")
@@ -320,16 +320,15 @@ assortativity(net, as.factor(groupL))
 
 ```{r}
 df = as_tbl_graph(net)
-pl = df %>% mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
+df %>% mutate(btw= 10*log(centrality_betweenness() + 1)) %>%
 ggraph(layout="fr") + 
   geom_edge_link(show.legend = FALSE,color="gray") +
-  geom_node_point(aes(colour = gruppiL,size= btw),alpha =
+  geom_node_point(aes(colour = groupL,size= btw),alpha =
 1,show.legend=T) + 
   geom_node_label(aes(label=label))+
   theme_graph(base_family='sans') + 
   scale_size(guide="none") +
   theme(legend.position = "bottom")
-pl
 ```
 
 As a final modification, we use the functionality of the `tidygraph` package to improve graphical representation even further. The package allows various
@@ -352,7 +351,7 @@ df %>%
   mutate(btw= centrality_betweenness()) %>% 
   ggraph(layout="fr") +
   geom_edge_link(aes(color=e_col),alpha=.7,show.legend = FALSE) +
-  geom_node_point(aes(colour = gruppiL,size= btw),show.legend=T) + 
+  geom_node_point(aes(colour = groupL,size= btw),show.legend=T) + 
   geom_node_label(aes(label=label))+
   theme_graph(base_family='sans') + 
   theme(legend.position = "bottom") +
