@@ -75,8 +75,11 @@ __R commands__
 
 ```{r eval = FALSE}
 install.packages("ggplot2") 
+```
+```{r}
 library(ggplot2) 
 ```
+
 :::
 ::: {}
 __Comments__ 
@@ -107,40 +110,11 @@ means that you must install the package ``dplyr``.
 
 For the operations of addition, subtraction, multiplication and division we use $+ - * /$. For power elevation, $**$ or $^$ is used.
 
-```{r, echo = T, eval = F}
+```{r, echo = T}
 (4+5)*3
 ```
 
 Logical operators correspond to the following symbols:
-
-
-:::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
-::: {}
-__R commands__ 
-
-```{r, eval = FALSE}
-# Variable "Country"
-DB$Country <- as.factor(DB$Country) 
-levels(DB$Country)
-# Variable "Region"
-DB$Region <- as.factor(DB$Region) 
-levels(DB$Region)
-# Variable "Hemisphere"
-table(DB$Hemisphere)
-DB$Hemisphere <- ifelse(DB$Hemisphere == "noth", "north", DB$Hemisphere)
-DB$Hemisphere <- as.factor(DB$Hemisphere) 
-levels(DB$Hemisphere)
-```
-:::
-::: {}
-__Comments__ 
-
-* `as.factor(x)` -- function transforming variable `x` in a categorical one.
-* `levels(x)` -- function listing all levels of variable `x`.
-* `table(x)` -- check how many values the variable `x` takes.
-* `ifelse(cond, x, y)` -- if `cond` is satisfied then return `x` else `y`.
-:::
-::::
 
 
 ```{r, echo = T, eval = F}
@@ -162,7 +136,7 @@ pluto = "hello"
 
 different from `==` (logical operation defining equal)! 
 
-Let see some examples together:
+Let's see some examples together:
 
 ```{r, echo = T, eval = F}
 4==10
@@ -174,11 +148,11 @@ Let see some examples together:
 
 `r emo::ji("boom")` **Please note**!
 
-```{r, echo = T, eval = F}
+```{r, echo = T}
 TRUE==1
 ```
 
-```{r, echo = T, eval = F}
+```{r, echo = T}
 FALSE==0
 ```
 
@@ -198,7 +172,7 @@ setwd("my_path")
 
 **How see the objects in my working directory?**
 
-```{r, echo = T, eval = F}
+```{r, echo = T}
 ls()
 ```
 
@@ -229,7 +203,7 @@ or you can go to File $\rightarrow$ Import Datasets $\rightarrow$ ...
 
 ## Vector
  
-```{r, echo = T, eval = F}
+```{r, echo = T}
 pluto <- c(1:100) #create a vector containing number from 1 to 100
 pluto1 <- seq(1,500,5) #create a vector with values from 1 to 500 for every 5 values
 pluto2 <- rep(10,5) #create a vector where the value 10 is repeated 5 times
@@ -243,7 +217,7 @@ pluto/5 #we divide each element of pluto by 5
 
 ## Matrix
  
-```{r, echo = T, eval = F}
+```{r, echo = T}
 foo <- matrix(data = 10, nrow = 10, ncol = 5) #Create a matrix 
 #with 10 rows and 5 columns containing only 10
 foo1 <- matrix(data = foo, nrow = 20, ncol = 5, byrow = T) #let's put foo in
@@ -260,7 +234,7 @@ is.matrix(foo) #Check that foo is an array
 
 ## Data-frame
  
-```{r, echo = T, eval = F}
+```{r, echo = T}
 rick <- data.frame(foo2[1:20,]) #create a dataframe named rick 
 #which takes the first 20 observations of foo2
 dim(rick) #dimension? nrow, ncol etc as a matrix
@@ -306,7 +280,7 @@ Were recorded `r library(tidyverse); DB %>% ncol()` different characteristics on
 - *Country* - Name of the country;
 - *Region* - Region the country belongs to;
 - *Hemisphere* - Hemisphere of country;
-- *HappinessScore* - A metric measured that asks the sampled people the question: ``How would you rate your happiness on a scale of $0$ to $10$ where $10$ is the happiest'';
+- *HappinessScore* - A metric measured that asks the sampled people the question: "How would you rate your happiness on a scale of $0$ to $10$ where $10$ is the happiest";
 - *HDI* - Human Development Index by United Nations Development Programme;
 - *GDP_PerCapita* - Gross Domestic Product index;
 - *Beer_PerCapita* - Liters ( per capita ) of beer consumption;
@@ -352,7 +326,7 @@ We must transform the variables `Country`, `Region` and `Hemisphere` as factors 
 ::: {}
 __R commands__ 
 
-```{r dat_structure, eval = FALSE}
+```{r dat_structure}
 # Variable "Country"
 DB$Country <- as.factor(DB$Country) 
 levels(DB$Country)
@@ -751,8 +725,9 @@ __Comments__
 
 * **Residual versus fitted values** -- We can see a parabolic pattern in our case, meaning that there is a non-linear relationship that was not explained by the model and was left out in the residuals.
 * **Normal Q-Q plot** -- The points do not follow the straight line, meaning that the standardized residuals probably not follow a standard normal distribution (i.e., the residuals are not normal).
-* **Scale-Location** -- The residuals seem to spread wider the closer it gets to 0 along the x-axis. Because of that, the red smooth line is not horizontal and shows a parabolic behaviour.
-* **Residuals vs Leverage** -- This is a typical case when there are no influential observations. The Cook's distance lines (i.e., red dashed lines) are not seen because all cases are well inside of it. 
+* **Scale-Location** -- The residuals seem to follow the 0 value along the x-axis, but probably there is some influential values since the red line is not perfectly straight.
+* **Residuals vs Leverage** -- This is a typical case when there are no influential observations. The Cook’s distance lines (i.e., red dashed lines) are not seen because all cases are well inside of it. 
+
 :::
 ::::
 
@@ -760,7 +735,7 @@ __Comments__
 
 We can add more variables to the model, keeping in mind that now we have both quantitative and qualitative variables to take into consideration as predictors. 
 \[
-  \text{HappinessScore}_i \approx \beta_0 + \beta_1 \, \text{Beer_PerCapita}_i + \beta_2 \text{HDI}_i + \dots + \beta_{3} \text{Wine_PerCapita}_i, \qquad i = 1, \dots, n.
+ \text{EQ. 2:} \qquad  \text{HappinessScore}_i \approx \beta_0 + \beta_1 \, \text{Beer_PerCapita}_i + \beta_2 \text{HDI}_i + \dots + \beta_{3} \text{Wine_PerCapita}_i, \qquad i = 1, \dots, n.
 \]
 Below we use the syntax `formula = response variable ~.` inside `lm()` to include all the variables except `HappinessScore` in the model as linear independent predictors, while `-Country` after the symbol `~` permits to not consider the `Country` variable into the model.
 
@@ -798,7 +773,7 @@ The near-zero $p$-value associated with the quadratic term suggests that it lead
 anova(lm.fit.simple, lm.fit.nonlinear)
 ```
 
-The `anova()` function performs a hypothesis test comparing the two models. The null hypothesis is that the two models fit the data equally well, and the alternative hypothesis is that the model with both linear and quadratic terms is superior. Here the $F$-statistic is 135 and the associated $p$-value is virtually zero. This provides very clear evidence that the model containing the predictors `Beer_PerCapita` and `Beer_PerCapita`$^2$ is far superior to the model that only contains the predictor `Beer_PerCapita`.
+The `anova()` function performs a hypothesis test comparing the two models. The null hypothesis is that the two models fit the data equally well, and the alternative hypothesis is that the model with both linear and quadratic terms is superior. Here the $F$-statistic is 14.7 and the associated $p$-value is near zero. This provides evidence that the model containing the predictors `Beer_PerCapita` and `Beer_PerCapita`$^2$ is far superior to the model that only contains the predictor `Beer_PerCapita`.
 
 > **_Question:_** _Is this surprising or not? And what can we say from the diagnostics below?_
 

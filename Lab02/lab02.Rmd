@@ -46,7 +46,7 @@ The main package we are going to use is the package `igraph`.
 install.packages("igraph") 
 ```
 
-# An example of neural network: 3 million Russian troll tweets
+# An example of network: 3 million Russian troll tweets
 
 In this tutorial, we will analyze data used in the *FiveThirtyEight* story [Why We’re Sharing 3 Million Russian TrollTweets](https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/). The original data set is composed by $3$ million of tweets from suspected twitter account. The data are prepossessed, if you want to see the original data set, please see this [link](https://www.kaggle.com/fivethirtyeight/russian-troll-tweets).
 
@@ -81,7 +81,7 @@ load("Datasets/russian_trolls.RData")
 library(igraph)
 ```
 
-So, let transform our data set to a `graph`:
+So, let's transform our data set to a `graph`:
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -108,7 +108,7 @@ __Comments__
 
 > `r emo::ji("boom")` **_Please note_** _you can create the `igraph` graph object also if you have a data.frame thanks to the `graph_from_data_frame` function (or you can transform the edgelist as data.frame or reverse). There is also the function `graph_from_adjacency_matrix` to create an `igraph` graph object from adjacency matrices._
 
-Let take a look of our new graph:
+Let's take a look of our new graph:
 
 ```{r}
 summary(net)
@@ -151,7 +151,7 @@ __Comments__
 
 First of all, we will eliminate the nodes without connections, i.e., degree equals $0$.
 
-`r emo::ji("boom")` **Remember**: The degree indicates the number of adjacent
+> `r emo::ji("star")` **Remember**: The degree indicates the number of adjacent
 nodes, that is the number of nodes to which the node is connected. It measures how connected a node is, so it is a local measure.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
@@ -205,7 +205,7 @@ shortest_paths(graph = net,from = "aiden7757",to = "_nickluna_")$vpath
 
 So, the shortest path includes $5$ vertices names `aiden7757`, ` andyhashtagger`, `bgarner2107`, `politweecs` and `_nickluna_`.
 
-`r emo::ji("boom")` **Remember**: The geodesic distance is the length of the shortest path connecting two nodes.
+> `r emo::ji("star")` **Remember**: The geodesic distance is the length of the shortest path connecting two nodes.
 
 We are now interested to compute the **mean distance between nodes**, i.e., the mean length of the paths:
 
@@ -221,7 +221,7 @@ S = distances(graph = net)
 image(S,col = gray.colors(n = diameter(net)))
 ```
 
-`r emo::ji("boom")` **Remember**: In addition to the *degree*, there are other local measures to assess the importance of a node within the network. The most important are 
+> `r emo::ji("star")` **Remember**: In addition to the *degree*, there are other local measures to assess the importance of a node within the network. The most important are 
 
 - *closeness*: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes.
 
@@ -254,7 +254,7 @@ sort(D_net,decreasing = T)[1:5]
 sort(B_net,decreasing = T)[1:5]
 ```
 
-So, let see now the distribution of the closeness and betweeness measure:
+So, let's see now the distribution of the closeness and betweeness measure:
 
 ```{r}
 par(mfrow=c(1,2))
@@ -275,7 +275,7 @@ We observe that only 6 nodes have a betweennes greater than $0.1$. We might also
 
 > **_Question:_** _As as the degree increases, so do betwennes and closeness?_
 
-Let compute the correlation between these measures:
+Let's compute the correlation between these measures:
 
 ```{r}
 cor(cbind(B_net,D_net,C_net))
@@ -328,17 +328,15 @@ ggplot(aes(value,after_stat(density),color=x)) +
 
 In general we do not expect there to be much difference from these statistics if the communities represent reasonable social groups. The three groups are homogeneous with respect to degree and betweenness, while they differ somewhat in with respect to closeness. Thus, we can conclude that the group of trolls categorized as Left are less close to each other than the others. This characteristic is in itself interesting, and suggests that this group is less compact and therefore also more open to connections with the outside world. To explore these considerations further, we could evaluate for instance, how the geodesic distance varies between the two groups, and whether these differences are due only to a few nodes.
 
-A natural question at this point is whether the division into groups is ``good'' in terms of cohesion.
+A natural question at this point is whether the division into groups is "good" in terms of cohesion.
 
 ```{r}
 modularity(net,factor(aType))
 assortativity(net,factor(aType))
 ```
 
-`r emo::ji("star")` **Remember**:
-
+> `r emo::ji("star")` **Remember**:
 - *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections.
-
 - *assortativity*: normalized modularity. It is positive if similar vertices (based on some external property, e.g., `aType`) tend to connect to each, and negative otherwise. Assortativity close to $1$ indicates strong cohesion between groups. Empirically, values greater than $0.3$ suggest that the communities found are non-trivial.
 
 The division actually leads to very high values of *assortativity*, confirming a strong homophily with respect to the group. 
@@ -401,7 +399,7 @@ So, summing up  `modularity(x)` can take as input the graph with the membership 
 table(membership(gr), aType)
 ```
 
-`r emo::ji("boom")` **Please note**! If you do not have a large graph (i.e., graphs with up to fifty vertices), you can use the `cluster_optimal` function which calculates the optimal community structure of a graph, by maximizing the *modularity* measure over all possible partitions.
+> `r emo::ji("boom")` **Please note**! _If you do not have a large graph (i.e., graphs with up to fifty vertices), you can use the `cluster_optimal` function which calculates the optimal community structure of a graph, by maximizing the *modularity* measure over all possible partitions._
 
 # Concluding
 

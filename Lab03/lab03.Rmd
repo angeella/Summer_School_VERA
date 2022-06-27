@@ -32,7 +32,7 @@ rm(list = ls())
 
 # Introduction
 
-The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for the material.
+The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for sharing part of this material. 
 
 In this tutorial, we will see how to represent graphically our network, plotting also the attributes related to the nodes and edges.
 
@@ -42,7 +42,7 @@ First of all, you must load the `.RData` created in the previous tutorial:
 load("../Lab02/lab02.RData")
 ```
 
-We will use the packages `igraph` and `ggraph`. The difference between these two packages is that `ggraph` is based on `ggplot` structure/language, while `igraph` uses basic `R` language. Both are useful, you can use the one that best fits with you!
+We will use the packages `igraph` and `ggraph`. The difference between these two packages is that `ggraph` is based on `dplyr` syntax, while `igraph` uses basic `R` language. Both are useful, you can use the one that best fits with you!
 
 ```{r}
 library(igraph)
@@ -59,7 +59,7 @@ par(mfrow = c(1,1))
 plot(net)
 ```
 
-As we can see, the graph is not so clear. So, lets modify it in a proper way:
+As we can see, the graph is not so clear. So, let's modify it properly:
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -79,7 +79,7 @@ plot(net,
 ::: {}
 __Comments__ 
 
-* `V(net)$name[which(B_net < quantile(B_net, .99))] = NA`: Delete vertices having betweeness (object `B_net`) value lower than the quantile at level $.99$;
+* `V(net)$name[which(B_net < quantile(B_net, .99))] = NA`: delete vertices having betweeness (object `B_net`) value lower than the quantile at level $.99$;
 * `vertex.label`: change the label of the nodes;
 * `vertex.label.color`: change the color of the nodes' labels;
 * `edge.color`: change the color of the edges;
@@ -111,8 +111,8 @@ plot(net,
 ::: {}
 __Comments__ 
 
-* `vertex.size`: change the size of the vertex. In this case we use a transformation of the *betweenness* measure;
-* `vertex.color`: change the color of the nodes. In this case we use as information the type of twitter account analyzed.
+* `vertex.size`: change the size of the vertex. In this case, we use a transformation of the *betweenness* measure;
+* `vertex.color`: change the color of the nodes. In this case, we use as information the type of Twitter account analyzed.
 :::
 ::::
 
@@ -133,11 +133,11 @@ set.seed(1234)
 plot(net)
 ```
 
-`r emo::ji("boom")` **Please note**! Here we fix the seed using the function `set.seed(x)` since the default `layout` used by the `plot.igraph` function is `layout_nicely`, a smart function that chooses a layouter based on the graph. Some layout algorithm are not deterministic. For further information, see `?layout_nicely`.
+`r emo::ji("boom")` **Please note**! Here we fix the seed using the function `set.seed(x)` since the default `layout` used by the `plot.igraph` function is `layout_nicely`, a smart function that chooses a layouter based on the graph. Some layout algorithms are not deterministic. For further information, see `?layout_nicely`.
 
 ## Network layout
 
-We can even set a specific network layout. In very short terms, a **layout** is the vertical and horizontal placement of nodes when plotting a particular graph structure. Conversely, a layout algorithm is an algorithm that takes in a graph structure (and potentially some additional parameters) and return the vertical and horizontal position of the nodes. Often, when people think of network visualizations, they think of node-edge diagrams where strongly connected nodes are attempted to be plotted in close proximity. Layouts can be a lot of other things too though — e.g. hive plots and treemaps. 
+We can even set a specific network layout. In very short terms, a **layout** is the vertical and horizontal placement of nodes when plotting a particular graph structure. Conversely, a layout algorithm is an algorithm that takes in a graph structure (and potentially some additional parameters) and return the vertical and horizontal position of the nodes. Often, when people think of network visualizations, they think of node-edge diagrams where strongly connected nodes are attempted to be plotted in close proximity. Layouts can be a lot of other things too though — e.g., hive plots and treemaps. 
 
 1. **Graph layout by multidimensional scaling**
 
@@ -230,11 +230,11 @@ for(layout in layouts){
 }
 ```
 
-`r emo::ji("boom")` **Please note**! You can find the full list of network layout available typing `?layout`.
+> `r emo::ji("boom")` **Please note**! You can find the full list of network layout available typing `?layout`.
 
 ## Communities
 
-We can also try to make the network map more useful by showing the communities within it. So, let take the communities computed by `cluster_louvain` in the previous laboratory (i.e., `gr` objects):
+We can also try to make the network map more useful by showing the communities within it. So, let's take the communities computed by `cluster_louvain` in the previous laboratory (i.e., `gr` objects):
 
 ```{r}
 V(net)$community <- gr$membership 
@@ -263,9 +263,9 @@ plot(net,
      vertex.label.color = "white")
 ```
 
-In this case we have $125$ nodes referred to the category Russian having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r length(col)` different colors, one for each distance value, to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
+In this case, we have $125$ nodes referred to the category Left having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r length(col)` different colors, one for each distance value, to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
 
-We can also highlight a path in the network, for example the shortest path from a vertex with Russian account category to a vertex with Right account category.
+We can also highlight a path in the network, for example the shortest path from a vertex with Left account category to a vertex with Right account category.
 
 ```{r}
 right.path<-shortest_paths(net,
@@ -306,7 +306,7 @@ vcol[neigh.nodes] <- "#ff9d00"
 plot(net, vertex.color=vcol)
 ```
 
-A way to draw attention to a group of nodes (we saw this before with communities) is to ``mark'' them:
+A way to draw attention to a group of nodes (we saw this before with communities) is to "mark" them:
 
 ```{r}
 par(mfrow=c(1,2)) 
@@ -333,7 +333,7 @@ plot(net, layout=l)
 
 The `ggplot2` package and its extensions are known for offering the most meaningfully structured and advanced way to visualize data in R. In `ggplot2`, you can select from a variety of visual building blocks and add them to your graphics one by one, a layer at a time. The `ggraph` package takes this principle and extends it to network data. In this section, we’ll only cover the basics without providing a detailed overview of the grammar of graphics approach. For a deeper look, it would be best to get familiar with `ggplot2` first, then learn the specifics of `ggraph`. One good news is that we can use our igraph objects directly with the `ggraph` package. The following code gets the data and adds separate layers for nodes and links.
 
-We can do everything done with the `igraph` package using the `ggraph` package; however, the layout is generally fancier, especially for a large neural network.
+We can do everything done with the `igraph` package using the `ggraph` package; however, the layout is generally fancier, especially for a large network.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -356,7 +356,6 @@ __Comments__
 ::::
 
 Lets try to improve it, we want nodes having **size** that reflectes the *centrality betweeneess* measure.
-
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -386,7 +385,7 @@ __Comments__
 :::
 ::::
 
-Now, instead of representing the levels of `aType` variable as colors of the nodes, we want to use the community computed by the *Louvain method* (that we compute in the previous laboratory).
+Now, instead of representing the levels of `aType` variable as colors of the nodes, we want to use the community computed by the *Louvain method* (that we computed in the previous laboratory).
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -407,7 +406,7 @@ So, here we aggregate some communities if the frequency is low.
 :::
 ::::
 
-It may make sense to keep only the ``interesting'' groups, and to assign labels that are recognizable:
+It may make sense to keep only the "interesting" groups and to assign recognizable labels:
 
 ```{r}
 library(stringr)
@@ -441,7 +440,7 @@ ggraph(layout="fr") +
 ```
 
 As a final modification, we use the functionality of the `tidygraph` package to improve graphical representation even further. The package allows various
-manipulations on network data with `dplyr` syntax. Specifically, the following fragment distinguishes the colour of the edges according to the groups of nodes connected by the edges itself.
+manipulations on network data with `dplyr` syntax. Specifically, the following fragment distinguishes the color of the edges according to the groups of nodes connected by the edges itself.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
