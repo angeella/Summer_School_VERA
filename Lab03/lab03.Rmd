@@ -230,7 +230,7 @@ for(layout in layouts){
 }
 ```
 
-> `r emo::ji("boom")` **Please note**! You can find the full list of network layout available typing `?layout`.
+> `r emo::ji("boom")` **Please note**! You can find the full list of network layout available typing `?layout_`.
 
 ## Communities
 

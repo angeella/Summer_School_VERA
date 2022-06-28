@@ -91,7 +91,7 @@ __Comments__
 
 So, we install the package ``ggplot2`` and we recall it in our session. This package permits to create fancy graphical plots.
 
-$\rightarrow$ For each idea that you want to apply in `R`, probably a package exists which will resolve all your problems. If you find the following error:
+For each idea that you want to apply in `R`, probably a package exists which will resolve all your problems. If you find the following error:
 
 ```{r, eval = F, echo = T}
 Error in library(dplyr) : there is no package called dplyr
@@ -138,7 +138,7 @@ different from `==` (logical operation defining equal)!
 
 Let's see some examples together:
 
-```{r, echo = T, eval = F}
+```{r, echo = T}
 4==10
 5!=10
 (4==4)&(10!=1)
@@ -378,14 +378,17 @@ We make histograms plot for each quantitative variable. We can use base `R` func
 
 ```{r histograms0, fig.height=3}
 var_interest_numeric <- colnames(DB)[!(colnames(DB) %in% c("Country", "Region", "Hemisphere"))]
+
 for(i in c(1:length(var_interest_numeric))){
   
-  hist(DB[,var_interest_numeric[i]], main = var_interest_numeric[i], xlab = var_interest_numeric[i])
+  hist(DB[,var_interest_numeric[i]], 
+       main = var_interest_numeric[i], 
+       xlab = var_interest_numeric[i])
 }
 ```
 
 
-or we can use the packages `dplyr`, `tidyr`, `ggplot`:
+or we can use the packages `dplyr`, `tidyr`, `ggplot2`:
 
 ```{r}
 library(dplyr)
@@ -614,10 +617,10 @@ __Comments on `summary(lm.fit.simple)` output__
 
 The fitted regression line can be written as 
 \[ 
-\widehat{\text{HappinessScore}}_i = \hat{\beta}_0 + \hat{\beta}_1 \, \text{Beer_PerCapita}_i = 4.78 + 0.05 \, \text{Beer_PerCapita}_i, \qquad i = 1, \dots, n. 
+\widehat{\text{HappinessScore}}_i = \hat{\beta}_0 + \hat{\beta}_1 \, \text{Beer_PerCapita}_i = 4.78 + 0.005 \, \text{Beer_PerCapita}_i, \qquad i = 1, \dots, n. 
 \]
 
-We can say that the coefficient associated to `Beer_PerCapita` is statistically significant at a level $\alpha = 0.05$ (actually, at lower level), meaning that there exists a (strong) relationship between `HappinessScore` and `Beer_PerCapita`. Moreover, since it has a negative sign, we can interpret it as follows: if `Beer_PerCapita` differed by 1\%, `HappinessScore` will decrease by `r abs(round(coef(lm.fit.simple)[[2]], 3))` units, on average.
+We can say that the coefficient associated to `Beer_PerCapita` is statistically significant at a level $\alpha = 0.05$ (actually, at lower level), meaning that there exists a (strong) relationship between `HappinessScore` and `Beer_PerCapita`. Moreover, since it has a negative sign, we can interpret it as follows: if `Beer_PerCapita` differed by 1\%, `HappinessScore` will increase by `r abs(round(coef(lm.fit.simple)[[2]], 3))` units, on average.
 
 We can compute the $95\%$ confidence interval for the coefficient $\beta_0$ and $\beta_1$:
 

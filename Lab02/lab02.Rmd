@@ -213,6 +213,8 @@ We are now interested to compute the **mean distance between nodes**, i.e., the 
 average.path.length(graph = net)
 ```
 
+> `r emo::ji("star")` **Remember**: Average path length is a concept in network topology that is defined as the average number of steps along the shortest paths for all possible pairs of network nodes.
+
 So the average path length equals $5.15$. Also, we can compute the matrix $S$ of total distances between all possible couples of nodes:
 
 ```{r}
