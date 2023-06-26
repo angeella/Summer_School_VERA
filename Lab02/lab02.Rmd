@@ -247,6 +247,14 @@ C_net = igraph::closeness(graph = net, normalized = TRUE)
 B_net = igraph::betweenness(graph = net,normalized = TRUE) 
 ```
 
+So, let's see now the distribution of the closeness and betweeness measure:
+
+```{r}
+par(mfrow=c(1,2))
+hist(C_net, breaks = 50)
+hist(B_net, breaks = 50)
+```
+
 ```{r}
 names(which.max(C_net))
 names(which.min(C_net))
