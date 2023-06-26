@@ -1498,9 +1498,8 @@ margin-right: auto;
 </style>
 <p>This tutorial covers basics of <code>R</code>, a gentle reminder. You
 need to install <code>R</code> and <code>Rstudio</code>.</p>
-<p>You can find all the material for these tutorials <a href="https://github.com/angeella/summer_school_2022_VERA">here!</a>
-Special thanks also to Ilaria Bussoli for sharing part of this
-material.</p>
+<p>You can find all the material for these tutorials <a href="https://github.com/angeella/summer_school_VERA">here!</a> Special
+thanks also to Ilaria Bussoli for sharing part of this material.</p>
 <div id="user" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> use…R!</h1>
 <ul>
@@ -1578,7 +1577,7 @@ following commands:</p>
 <p>So, we install the package <code>ggplot2</code> and we recall it in
 our session. This package permits to create fancy graphical plots.</p>
 <p>For each idea that you want to apply in <code>R</code>, probably a
-package exists which will resolve all your problems. If you find the
+package exists which will resolve all your problems. If you have the
 following error:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Error <span class="cf">in</span> <span class="fu">library</span>(dplyr) <span class="sc">:</span> there is no package called dplyr</span></code></pre></div>
 <p>means that you must install the package <code>dplyr</code>. 😄</p>
@@ -1793,7 +1792,7 @@ distribution:</p>
 </ul>
 <p>For example:</p>
 <div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">5</span>, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> <span class="fl">1.5</span>) <span class="co">#Here we genereted 5 values from a Normal distribution with mean 2 and standard deviation 1.5.</span></span></code></pre></div>
-<pre><code>## [1] 1.0695859 0.1618564 3.7892234 0.1019297 1.4530960</code></pre>
+<pre><code>## [1] 2.329407 3.505998 3.076367 1.287179 1.454577</code></pre>
 <p>For a complete look of the distributions available on <code>R</code>,
 see <code>help(Distributions)</code>.</p>
 <p>We can also extract a part of the vector using the square brackets
@@ -1939,22 +1938,22 @@ have the same number of columns):</li>
 </ul>
 <div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">5</span><span class="sc">*</span><span class="dv">5</span>), <span class="at">nrow =</span> <span class="dv">5</span>)</span>
 <span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>(Z)</span></code></pre></div>
-<pre><code>##            [,1]       [,2]        [,3]       [,4]       [,5]
-## [1,]  0.2364991 -0.1804803  0.61722352  0.3219139  0.4122690
-## [2,] -0.3651915  0.4500860 -1.08543638 -0.3263341  0.2282325
-## [3,] -0.3203011  0.6912586  0.05916288 -0.2758709  0.5924247
-## [4,] -0.5359097 -0.4215861 -1.01122035  0.1071793 -0.4174626
-## [5,]  0.2654019 -0.1586991  0.56948121  0.4198908 -0.5383137</code></pre>
+<pre><code>##             [,1]        [,2]       [,3]       [,4]        [,5]
+## [1,]  0.51216137  0.14126799 -0.1624204  0.1128923 -0.12290850
+## [2,] -0.44394379  0.18905683 -0.4812133 -0.4175449 -0.03257490
+## [3,] -0.02881726  0.07732227 -0.2515345 -0.1165667  0.40360484
+## [4,] -0.58678363  0.79260723 -0.5641149 -0.2335575  0.17897798
+## [5,]  0.38766357 -0.43723761  0.0443759  0.4548755 -0.03845244</code></pre>
 <ul>
 <li>Extract the <strong>diagonal </strong> of a matrix:</li>
 </ul>
 <div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diag</span>(Z)</span></code></pre></div>
-<pre><code>## [1]  0.4088129  1.3215236  0.8216208  0.6303022 -0.7775244</code></pre>
+<pre><code>## [1]  1.589724 -1.241346 -0.289415  1.563146 -0.198441</code></pre>
 <ul>
 <li><strong>Determinant</strong> of matrix:</li>
 </ul>
 <div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="fu">det</span>(Z)</span></code></pre></div>
-<pre><code>## [1] -9.632786</code></pre>
+<pre><code>## [1] 23.51288</code></pre>
 <blockquote>
 <p>Using <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>
 between two matrices perform the element-wise operations.</p>
@@ -2018,13 +2017,13 @@ to factors?</p></li>
 the column:</li>
 </ul>
 <div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a>db<span class="sc">$</span>Numbers[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">8</span>)]</span></code></pre></div>
-<pre><code>## [1] 5.118033 4.516987</code></pre>
+<pre><code>## [1] 5.068712 5.521775</code></pre>
 <ul>
 <li>select the columns and the rows using directly the square brackets
 <code>[]</code>:</li>
 </ul>
 <div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a>db[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">8</span>), <span class="dv">1</span>]</span></code></pre></div>
-<pre><code>## [1] 5.118033 4.516987</code></pre>
+<pre><code>## [1] 5.068712 5.521775</code></pre>
 <p>We can see the column names using the <code>colnames</code>
 command:</p>
 <div class="sourceCode" id="cb115"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(db)</span></code></pre></div>
@@ -2066,7 +2065,7 @@ directly.</p>
 <p>We can check the structure of our object (vector, matrix, array,
 dataframe) and its class using the <code>str()</code> function:</p>
 <div class="sourceCode" id="cb123"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb123-1"><a href="#cb123-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(X)</span></code></pre></div>
-<pre><code>##  num [1:2, 1:3, 1:5] 1.194 0.233 0.497 -0.7 1.049 ...</code></pre>
+<pre><code>##  num [1:2, 1:3, 1:5] 1.1527 -0.6289 -1.9364 1.3769 0.0491 ...</code></pre>
 <p>or check it using the functions <code>is.vector()</code>,
 <code>is.matrix()</code>, <code>is.array()</code> and
 <code>is.data.frame()</code>:</p>
@@ -2076,27 +2075,27 @@ dataframe) and its class using the <code>str()</code> function:</p>
 object:</p>
 <div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(X)</span></code></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -1.5593 -0.4791  0.1888  0.1402  0.7238  1.6692</code></pre>
+## -2.1391 -0.1576  0.1482  0.1434  0.7731  1.3769</code></pre>
 <div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(db)</span></code></pre></div>
 <pre><code>##       Col1          Col2  
-##  Min.   :4.154   ciao :3  
-##  1st Qu.:4.517   hello:3  
-##  Median :5.118   hola :3  
-##  Mean   :5.063            
-##  3rd Qu.:5.332            
-##  Max.   :6.248</code></pre>
+##  Min.   :3.682   ciao :3  
+##  1st Qu.:3.809   hello:3  
+##  Median :4.932   hola :3  
+##  Mean   :4.822            
+##  3rd Qu.:5.522            
+##  Max.   :6.255</code></pre>
 <p>and the functions <code>head()</code>/<code>tail()</code> returns the
 first/last parts of a vector, matrix, table, data frame or function:</p>
 <div class="sourceCode" id="cb131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(db)</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Col1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Col2"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"5.237032","2":"ciao","_rn_":"1"},{"1":"6.020046","2":"hello","_rn_":"2"},{"1":"4.765618","2":"hola","_rn_":"3"},{"1":"5.118033","2":"ciao","_rn_":"4"},{"1":"4.176077","2":"hello","_rn_":"5"},{"1":"6.248129","2":"hola","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Col1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Col2"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"4.931876","2":"ciao","_rn_":"1"},{"1":"5.707390","2":"hello","_rn_":"2"},{"1":"6.255240","2":"hola","_rn_":"3"},{"1":"5.068712","2":"ciao","_rn_":"4"},{"1":"3.808742","2":"hello","_rn_":"5"},{"1":"4.691090","2":"hola","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(db)</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Col1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Col2"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"5.118033","2":"ciao","_rn_":"4"},{"1":"4.176077","2":"hello","_rn_":"5"},{"1":"6.248129","2":"hola","_rn_":"6"},{"1":"5.332235","2":"ciao","_rn_":"7"},{"1":"4.516987","2":"hello","_rn_":"8"},{"1":"4.153993","2":"hola","_rn_":"9"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Col1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Col2"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"5.068712","2":"ciao","_rn_":"4"},{"1":"3.808742","2":"hello","_rn_":"5"},{"1":"4.691090","2":"hola","_rn_":"6"},{"1":"3.682179","2":"ciao","_rn_":"7"},{"1":"5.521775","2":"hello","_rn_":"8"},{"1":"3.734574","2":"hola","_rn_":"9"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
