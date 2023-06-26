@@ -4,7 +4,9 @@
 
 ## Materials for summer school - VERA - SIdE - Venice
 
-Here, you can find all the materials for Tutorial 3 (**Network data manipulation and visualization in R**)
+Here, you can find all the materials for Tutorial 3 (**Network data manipulation and visualization in R**):
+
+-    [Introduction to GitHub and Rmarkdown](https://github.com/angeella/Summer_School_2022_VERA/tree/main/Lab0)
 -    [Introduction to R](https://github.com/angeella/Summer_School_2022_VERA/tree/main/Lab01)
 -    [Network manipulation in R](https://github.com/angeella/Summer_School_2022_VERA/tree/main/Lab02)
 -    [Network mapping and visualization in R](https://github.com/angeella/Summer_School_2022_VERA/tree/main/Lab03)
