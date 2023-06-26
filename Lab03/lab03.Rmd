@@ -193,12 +193,11 @@ plot(net, layout=l)
 The available `graphopt` parameters can be used to change the mass and electric charge of nodes. The parameter names are `charge` (defaults to $0.001$), `mass` (defaults to $30$), and `spring.length` (defaults to $0$). Tweaking those can lead to considerably different graph layouts.
 
 ```{r}
-l1 <- layout_with_graphopt(net, charge=0.02) 
+l1 <- layout_with_graphopt(net, charge=0.001) 
 l2 <- layout_with_graphopt(net, charge=0.00000001) 
 par(mfrow=c(1,2), mar=c(1,1,1,1)) 
 plot(net, layout=l1) 
 plot(net, layout=l2)
-
 ```
 
 
@@ -248,19 +247,18 @@ Sometimes we want to focus the visualization on a particular **node** or a group
 The `distances` function returns a matrix of shortest paths from nodes listed in the `v` parameter to ones included in the `to` parameter.
 
 ```{r}
-dist.from.Left <- distances(net, v=V(net)[aType=="Left"], to=V(net), weights=NA)
+dist.from.Left <- igraph::distances(net, v=V(net)[aType=="Left"], to=V(net), weights=NA)
 
-oranges<-colorRampPalette(c("darkred","gold"))
+oranges<-colorRampPalette(c("darkred", "gold"))
 col<-oranges(max(dist.from.Left)+1) 
 col<-col[dist.from.Left+1] 
 
 plot(net,
      vertex.color=col,
-     vertex.label=dist.from.Left,
-     vertex.label.color = "white")
+     vertex.label.color = "black")
 ```
 
-In this case, we have $125$ nodes referred to the category Left having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r length(col)` different colors, one for each distance value, to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
+In this case, we have $125$ nodes referred to the category Left having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r unique(length(col))` different colors one for each node to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
 
 We can also highlight a path in the network, for example the shortest path from a vertex with Left account category to a vertex with Right account category.
 
@@ -307,9 +305,9 @@ A way to draw attention to a group of nodes (we saw this before with communities
 
 ```{r}
 par(mfrow=c(1,2)) 
-plot(net, mark.groups=c(1,4,5,8), mark.col="#C5E5E7", mark.border=NA) 
+plot(net, mark.groups=which(membership(gr)==1), mark.col="#C5E5E7", mark.border=NA) 
 # Mark multiple groups: 
-plot(net, mark.groups=list(c(1,4,5,8), c(15:17)), mark.col=c("#C5E5E7","#ECD89A"), mark.border=NA)
+plot(net, mark.groups=list(which(membership(gr)==1), which(membership(gr)==2)), mark.col=c("#C5E5E7","#ECD89A"), mark.border=NA)
 ```
 
 ## Interactive plotting with tkplot
@@ -397,7 +395,9 @@ groupL[groupL %in% c(8)] = 7
 :::
 ::: {}
 __Comments__ 
+
 * `membership(x)` -- return for each nodes the corresponding `x` community.
+
 * `table()` -- contingency table.
 So, here we aggregate some communities if the frequency is low.
 :::
@@ -466,6 +466,7 @@ df %>%
 :::
 ::: {}
 __Comments__ 
+
 * `activate(x)` --  does just that and needs affects all subsequent manipulations until a new table is activated.
 So, we create the new variable `e_col` considering the community of the nodes for each edge. 
 :::
