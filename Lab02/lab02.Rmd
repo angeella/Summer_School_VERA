@@ -4,7 +4,7 @@ author: |
   | Angela Andreella 
   | Ca' Foscari University of Venice
   | angela.andreella@unive.it
-date: '2022-06-28'
+date: '2023-06-27'
 output:
   prettydoc::html_pretty:
     theme: tactile
@@ -52,25 +52,25 @@ In this tutorial, we will analyze data used in the *FiveThirtyEight* story [Why 
 
 We want to analyze the interaction structure between these twitter profiles, excluding (in this case) the interaction (comment/re tweet), the direction, and the number of time this interaction appear (size of the edge). You can find the data set in the `Datasets` folder. It is composed by two matrices, `Y` describes the edges (two-column matrix, where each row defines one edge), while `X` report some information about the nodes (i.e., twitter profiles, $1245$ in total):
 
-- *accountcategory*: main category for type of account, e.g., Commercial, NewsFeed, etc (macro category);
+- `accountcategory`: main category for type of account, e.g., Commercial, NewsFeed, etc (macro category);
 
-- *accounttype*: type of account (thinner account category than `accountcategory`);
+- `accounttype`: type of account (thinner account category than `accountcategory`);
 
-- *activity*: number of activities;
+- `activity`: number of activities;
 
-- *maxfollowers*: maximum number of followers profiles;
+- `maxfollowers`: maximum number of followers profiles;
 
-- *maxfollowing*: maximum number of following profiles;
+- `maxfollowing`: maximum number of following profiles;
 
-- *maxpostdate*: last registered post;
+- `maxpostdate`: last registered post;
 
-- *minfollowers*: minimum number of followers profiles;
+- `minfollowers`: minimum number of followers profiles;
 
-- *minfollowing*: minimum number of following profiles;
+- `minfollowing`: minimum number of following profiles;
 
-- *minpostdate*: first registered post;
+- `minpostdate`: first registered post;
 
-- *vertex.names*: name of the twitter account (i.e., the name of the node of the graph).
+- `vertex.names`: name of the twitter account (i.e., the name of the node of the graph).
 
 # Edge, vertex and attributes
 
@@ -81,32 +81,34 @@ load("Datasets/russian_trolls.RData")
 library(igraph)
 ```
 
-So, let's transform our data set to a `graph`:
+So, let's transform our data set as an `igraph` class object:
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
 __R commands__ 
 
 ```{r}
-net = graph_from_edgelist(Y,directed = F)
+net = graph_from_edgelist(Y,directed = F) 
+
 for(j in 1:ncol(X)){ 
   net = net %>% 
     set_vertex_attr(name = colnames(X)[j],
                     value = X[,j]) 
 }
-V(net)$name = V(net)$vertex.names
+
+V(net)$name = V(net)$vertex.names 
 ```
 :::
 ::: {}
 __Comments__ 
 
-* `graph_from_edgelist(x)` -- creates a graph from an edge list `x`.
+* `graph_from_edgelist(x)` -- creates a graph from a two column matrix `x`.
 * `set_vertex_attr(name = x, value = y)` -- set vertex attributes, where `x` is the name of the attribute, and `y` is the value of the attribute.
 * In the last line we name the nodes using the variable `vertex.names`, we can access to the vertex-level name of the graph `x` attribute by `V(x)$name`.
 :::
 ::::
 
-> `r emo::ji("boom")` **_Please note_** _you can create the `igraph` graph object also if you have a data.frame thanks to the `graph_from_data_frame` function (or you can transform the edgelist as data.frame or reverse). There is also the function `graph_from_adjacency_matrix` to create an `igraph` graph object from adjacency matrices._
+> `r emo::ji("boom")` **_Please note_** _you can create the `igraph` class object also if you have a data.frame thanks to the `graph_from_data_frame` function (or you can transform the edgelist as data.frame or reverse). There is also the function `graph_from_adjacency_matrix` to create an `igraph` graph object from adjacency matrices._
 
 Let's take a look of our new graph:
 
@@ -116,10 +118,10 @@ summary(net)
 
 The `igraph` objects is described by four letters:
 
-1. *D* or U for directed or undirected graph;
+1. *D* or *U* for directed or undirected graph;
 2. *N* for named graph (where nodes have a name attribute);
 3. *W* for a weighted graph (where edges have a weight attribute);
-4. *B* for a bipartite (two-mode) graph (where nodes have a type attribute).
+4. *B* for a bipartite graph (in short: two disjoint sets of nodes where each node of a set is connected with another node in the other set).
 
 So, there are two numbers ($1245$ and $2857$) which refer to the number of nodes and edges in the graph.
 
@@ -171,7 +173,7 @@ __Comments__
 :::
 ::::
 
-Then, also we can se which are the nodes with high degree:
+Then, also we can see which are the nodes with high degree:
 
 ```{r}
 D_net = igraph::degree(net)
@@ -195,7 +197,7 @@ edge_density(graph = net)
 ```
 
 
-The network follows a `` power-law`` structure, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. Clearly the shape of the distribution does not change when considering the normalized or absolute quantity. The distribution of normalized degrees, however, allows us to observe that even the most connected nodes present a small number small number of connections, compared to the size of the network. This result is not surprising, if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
+The network follows a `` power-law`` structure, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. Clearly the shape of the distribution does not change when considering the normalized or absolute quantity. The distribution of normalized degrees, however, allows us to observe that even the most connected nodes present a small number of connections, compared to the size of the network. This result is not surprising, if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
 
 A fundamental concept is the **geodesic distance**. The `igraph` library computes this quantities efficiently. For example, to calculate the path connecting two nodes:
 
@@ -220,19 +222,43 @@ So the average path length equals $5.15$. Also, we can compute the matrix $S$ of
 ```{r}
 par(mfrow = c(1,1))
 S = distances(graph = net)
-image(S,col = gray.colors(n = diameter(net)))
+image(S,col = gray.colors(n = diameter(net))) 
+#The diameter of a graph is the length of the longest geodesic.
 ```
 
 > `r emo::ji("star")` **Remember**: In addition to the *degree*, there are other local measures to assess the importance of a node within the network. The most important are 
 
-- *closeness*: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes.
+- *closeness*: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes:
 
-- *betweenness*: the number of geodesics (shortest paths) going through a vertex or an edge, i.e., how relevant is a node in terms of connecting other nodes in a graph.
+$$
+\dfrac{V-1}{\sum_{i \ne v} d_{vi}}
+$$
+
+- *betweenness*: analyze the number of geodesics (shortest paths) going through a vertex or an edge, i.e., how relevant is a node in terms of connecting other nodes in a graph:
+
+$$
+\dfrac{2\dfrac{\sum_{i \ne j}g_{ivj}}{g_{ij}}}{(V-1)(V-2)}
+$$
+
+where $g_{ivj}$ is the total number of shortest paths between vertices $i$ and $j$ while $g_{ivj}$ is the number of those shortest paths which pass though vertex $v$. Normalized by the number of ordered or unordered vertex pairs.
 
 ```{r}
-C_net = igraph::closeness(graph = net)
-B_net = igraph::betweenness(graph = net)
+C_net = igraph::closeness(graph = net, normalized = TRUE)
+B_net = igraph::betweenness(graph = net,normalized = TRUE) 
 ```
+
+```{r}
+names(which.max(C_net))
+names(which.min(C_net))
+```
+
+So, the account `ann_hanah` is the node closest to the other, while `jeromyjerom` is the less one.
+
+```{r}
+names(which.max(B_net))
+names(which.min(B_net))
+```
+So, the account `matevidence` is the most relevant node in our graph in terms of connecting nodes, while `_anna_sanna_` the less one (gatekeepers of information).
 
 It is possible that we have group of nodes disconnected, in order to see how our network is composed we can use the `components()` function:
 
@@ -241,7 +267,7 @@ subg = components(graph = net)
 subg$csize
 ```
 
-The network we are analysing has a very extensive component, consisting of $1149$ nodes, and several components consisting of very few nodes ($2$ or $4$). There is also a component formed by $35$ nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
+The network we are analysing has one very extensive component, consisting of $1149$ nodes, and several components consisting of very few nodes ($2$ or $4$). There is also a component formed by $35$ nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
 
 ```{r}
 net = igraph::delete.vertices(net, which(subg$membership != 1))
@@ -255,6 +281,7 @@ sort(C_net,decreasing = T)[1:5]
 sort(D_net,decreasing = T)[1:5]
 sort(B_net,decreasing = T)[1:5]
 ```
+> What happened?
 
 So, let's see now the distribution of the closeness and betweeness measure:
 
@@ -290,7 +317,11 @@ library(GGally)
 ggpairs((data.frame(B_net,D_net,C_net))) + theme_bw()
 ```
 
-The data suggest that there is some association between **degree** and **betweennes**.
+The data suggest that there is some association between **degree** and **betweennes**: nodes with a higher number of connections (degree) are more likely to lie on the shortest paths between other pairs of nodes (betweeness).
+
+If there is a strong positive correlation between **degree** and **closeness**: Nodes that have many direct connections to other nodes in the graph (high degree) are also more centrally located in terms of their overall proximity to other nodes (high closeness centrality).
+
+If there is a strong positive correlation between **betweennes** and **closeness**: Nodes that are well positioned to carry out a rapid transfer of information within the graph (high closeness centrality) are also those that play a crucial role in controlling communications between different nodes (high betweenness centrality).
 
 # Network and group
 
@@ -299,6 +330,11 @@ The Russian troll network is clearly characterized by different groups. Of parti
 ```{r}
 aType = vertex_attr(graph = net,name="accounttype")
 ```
+
+```{r}
+table(aType)
+```
+
 
 We clean up the various strings with the use of some regular expressions. Note that `$ ` makes a match for an empty string (`^` represents the beginning of a line,`$` the end), and that the $?$ must be preceded by the escape characters `\`.
 
@@ -338,8 +374,8 @@ assortativity(net,factor(aType))
 ```
 
 > `r emo::ji("star")` **Remember**:
-- *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections.
-- *assortativity*: normalized modularity. It is positive if similar vertices (based on some external property, e.g., `aType`) tend to connect to each, and negative otherwise. Assortativity close to $1$ indicates strong cohesion between groups. Empirically, values greater than $0.3$ suggest that the communities found are non-trivial.
+- *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections: high modularity $\rightarrow$ strong distinct defined communities.
+- *assortativity*: measures the level of homophyly of the graph, based on some vertex labeling or values assigned to vertices. If the coefficient is high, that means that connected vertices tend to have the same labels or similar assigned values.
 
 The division actually leads to very high values of *assortativity*, confirming a strong homophily with respect to the group. 
 

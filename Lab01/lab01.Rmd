@@ -4,14 +4,14 @@ author: |
   | Angela Andreella 
   | Ca' Foscari University of Venice
   | angela.andreella@unive.it
-date: '2022-06-28'
+date: '2023-06-27'
 output:
   prettydoc::html_pretty:
     theme: tactile
-    highlight: github
     df_print: paged
     toc: true
     number_sections: true
+    highlight: vignette
 fontsize: 11pt
 geometry: margin = 1in
 ---
@@ -28,17 +28,11 @@ geometry: margin = 1in
 knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning = F, message = F)
 ```
 
-This first tutorial covers basics of `R`, a gentle reminder. Therefore, you will need to install `R` and `Rstudio`. 
+This tutorial covers basics of `R`, a gentle reminder. You need to install `R` and `Rstudio`. 
 
-You can find all the material for these tutorials [here!](https://github.com/angeella/summer_school_2022_VERA). Special thanks also to Ilaria Bussoli for sharing part of this material. 
+You can find all the material for these tutorials [here!](https://github.com/angeella/summer_school_VERA) Special thanks also to Ilaria Bussoli for sharing part of this material. 
 
 # use...R!
-
- - Did you **install** `R`?
- 
- -  How many of you have ever **used** `R` or another programming language?
- 
-Why `R`?
 
  - **Reproducible analyses**
  
@@ -54,29 +48,48 @@ Why `R`?
     </style>![](Images/R-LadiesGlobal.png){ width=20% }
 </center> 
 
-First of all, let's try `R`, but `Rstudio` is simpler:
+`Rstudio` is *simpler* than `R`:
 
 <center>
-![](Images/Rstudio.png){ width=70% }
+![](Images/Rstudio.jpg)
 </center> 
 <br>
 
+
+1. **SCRIPT**: Here you can write your `.R` and `.rmd` files. In the toolbar `r knitr::include_graphics("Images/toolbar.png")` you can save your script clicking on `r emo::ji("save")`.
+
+2. **ENVIROMENT/HISTORY**: Here you can visualize your loaded **objects** (datasets etc) and see the code that you run.
+
+3. **`R` CONSOLE**: Here your code is executed. You can:
+
+   - directly write your code here and press`enter`,
+   
+   - write the code in the **SCRIPT** window and run it using `ctrl + enter` or using the run bottom in the `r` script window (top right).
+
+4. 
+    - **FILES**: explores the local folders
+    
+    - **PLOTS**: where the plots come up
+    
+    - **PACKAGES**: where you can install packages
+    
+    - **HELP**: where you can see how a function is constructed. Alternatively you can use `?` before the function name, i.e., `?function`.
 
 `r emo::ji("boom")` **Please note**! `R` and `Rstudio` are not the same! `R` is a programming language while `Rstudio` is an IDE (integrated development environment) which makes `R` user-friendly.
 
 
 # Packages for everyone!
 
-`R` provides a number of **packages** that contain very useful functions of various kinds. For example with the following commands:
+`R` provides several **packages** that contain very useful functions of various kinds. For example with the following commands:
  
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
 __R commands__ 
 
-```{r eval = FALSE}
+```{r install_package, eval = FALSE}
 install.packages("ggplot2") 
 ```
-```{r}
+```{r load_package}
 library(ggplot2) 
 ```
 
@@ -91,9 +104,9 @@ __Comments__
 
 So, we install the package ``ggplot2`` and we recall it in our session. This package permits to create fancy graphical plots.
 
-For each idea that you want to apply in `R`, probably a package exists which will resolve all your problems. If you find the following error:
+For each idea that you want to apply in `R`, probably a package exists which will resolve all your problems. If you have the following error:
 
-```{r, eval = F, echo = T}
+```{r example_error, eval = F, echo = T}
 Error in library(dplyr) : there is no package called dplyr
 ```
 
@@ -106,160 +119,703 @@ means that you must install the package ``dplyr``.
 ![](Images/stackoverflow.png){ width=30% }
 </center>
 
-# Operations
+# Basics
 
-For the operations of addition, subtraction, multiplication and division we use $+ - * /$. For power elevation, $**$ or $^$ is used.
+## Arithmetic
 
-```{r, echo = T}
-(4+5)*3
+- `+` for the **addition**
+
+- `-` for the **subtraction**
+
+- `*` for the **multiplication**
+
+- `/` for the **division**
+
+
+Some examples:
+
+```{r}
+3+5
 ```
 
-Logical operators correspond to the following symbols:
-
-
-```{r, echo = T, eval = F}
-& #AND
-| #OR
-> #greater
-< #less
-== #equal
-!= #not equal
->= #greater equal
-<= #less equal
+```{r}
+3-10
 ```
 
-`r emo::ji("boom")` **Please note**! The symbols ``=`` and ``<-`` are used to assign a value to a variable
-
-```{r, echo = T, eval = F}
-pluto = "hello"
+```{r}
+4*pi
 ```
 
-different from `==` (logical operation defining equal)! 
+```{r}
+20^(-1)
+```
 
-Let's see some examples together:
+## Logical Comparison
 
-```{r, echo = T}
+- `>` stands for **GREATER**
+- `<` stands for **LESS** 
+- `==` stands for **EQUAL**
+- `!=` stands for **NOT EQUAL**
+- `>=` stands for **GREATER EQUAL**
+- `<=` stands for **LESS EQUAL**
+- `&` stands for **AND**
+- `|` stands for **OR**
+
+Some examples:
+
+```{r}
+4<10
+```
+
+```{r}
+3>10
+```
+
+```{r}
+(4<10)&(3>10)
+```
+
+```{r}
 4==10
-5!=10
-(4==4)&(10!=1)
+```
+
+```{r}
 8>=10
-3<20
 ```
 
-`r emo::ji("boom")` **Please note**!
+> Warning: The `=` and `<-` symbols are used to assign a value to an object. Different than `==` (logical operation defining equal).
 
-```{r, echo = T}
-TRUE==1
+As in all programming language `TRUE==1` and `FALSE==0`.
+
+## Strings
+
+The string is placed between two `"`, e.g.,
+
+```{r}
+"Let use R!"
 ```
 
-```{r, echo = T}
-FALSE==0
+## Objects
+
+We can save some values into an object using the sign `=` or `<-`.
+
+For example running:
+
+```{r}
+x <- 8
 ```
 
-# Other fundamental commands
+we assign the value $8$ to `x`. If we then call `x`, `R` will returns 8:
 
-**Help?**
+```{r}
+x
+```
+- You can also assign a string to an object.
+ 
+- You can make operations between objects:
+ 
+```{r}
+y <- 10
+x*y
+```
+ 
+```{r}
+z <- 2/3
 
-```{r, echo = T, eval = F}
-help("+") #we ask for help to understand the + operation
+x == z
 ```
 
-**Change working directory?**
+The object can be: 
 
-```{r, echo = T, eval = F}
-setwd("my_path")
+1. **logical**: `TRUE` or `FALSE`.
+
+2. **integer**: a real number without a decimal part. 
+
+3. **numeric**: pi, $0.55$, $1.98$, etc. i.e., a real number.
+
+4. **character**: "hello", "I love stat", i.e., a string.
+
+5. **factor**: "hello", "I love stat", i.e., a string with defined levels.
+
+We can check it using the `class()` function:
+
+```{r}
+class(x)
 ```
 
-**How see the objects in my working directory?**
 
-```{r, echo = T}
-ls()
+## Vectors
+
+We specify vectors using `c()`. Inside the `()` we put our values separated by **commas**. 
+
+For example, running:
+
+```{r}
+x <- c(3, 20, 1)
 ```
 
-**How remove some objects in my working directory?**
+creates an object `x` which is a vector having dimension equals $3$ with then three values $3$, $20$ and $1$.
 
-```{r, echo = T, eval = F}
-rm(list = ls()) #remove all objects of my working directory
-rm(pluto) #remove the objects called pluto
+We can make **arithmetic operations** between vectors, e.g.,
+
+```{r}
+x/3
+```
+
+or using functions:
+
+- **Sum**
+
+```{r}
+sum(x)
+```
+
+- **Product**
+
+```{r}
+prod(x)
+```
+
+- **Absolute values**
+
+```{r}
+x <- c(-1,2,5)
+abs(x)
+```
+
+- **Exponential**, i.e., `e^x`
+
+```{r}
+exp(x)
+```
+
+- **Natural logarithm** 
+
+```{r}
+x <- c(1,4,10)
+log(x)
+```
+- **Maximum**
+
+```{r}
+max(x)
+```
+
+- **Minimum**
+
+```{r}
+min(x)
+```
+
+- **Range**
+
+```{r}
+range(x)
+```
+
+- **Mean**
+
+```{r}
+mean(x)
+```
+
+- **Median**
+
+```{r}
+median(x)
+```
+
+- **Variance**
+
+```{r}
+var(x)
+```
+
+- **Standard deviation**
+
+```{r}
+sd(x)
+```
+
+We can also use some specific **functions** to create vector directly if its values have a specific pattern:
+
+```{r}
+1:10 #Here we create a vector with integer values from 1 to 10
+```
+
+
+```{r}
+seq(1,10) #Here we create a sequence with integer values from 1 to 10
+```
+
+```{r}
+seq(1,10,by = 2) #Here we create a sequence with integer values from 1 to 10 with an increment equals 2
+```
+
+```{r}
+seq(1,10,length.out = 3) #Here we create a sequence taking values in [1,10] having length equals 3.
+```
+
+Other useful functions:
+
+- Vector **length**:
+
+```{r}
+length(x)
+```
+
+- **Repeat** a vector:
+
+```{r}
+rep(x,3) #Here we repeat the vector x three times
+```
+
+- Using **random values** generated from some distribution:
+
+  1. `rnorm()` Normal distribution
+  
+  2. `runif()` Uniform distribution
+  
+  3. `rpois()` Poisson distribution
+  
+  4. `rgamma()` Gamma distribution
+  
+  5. `rt()` Gamma distribution
+  
+For example:
+
+```{r}
+rnorm(n = 5, mean = 2, sd = 1.5) #Here we genereted 5 values from a Normal distribution with mean 2 and standard deviation 1.5.
+```
+
+For a complete look of the distributions available on `R`, see `help(Distributions)`.
+
+We can also extract a part of the vector using the square brackets `[]`:
+
+1. by **numerical indices**:
+
+```{r}
+x[c(1, 3)] #Here we extract the first and third elements
+```
+
+2. by **logical indices**:
+
+```{r}
+x[c(TRUE, FALSE, TRUE)] #Here we extract the first and third elements
+```
+Note that the object inside the square brackets is a vector, with length equals the number of elements of the vector that we want to extract if we use **numerical indices**, or with length equals the lengths of the vector if **logical indices** are used. Here, you can use also the `seq()`, `rep()`, `:` functions. Finally, you can create the logical indices using some logical comparison, e.g., 
+
+```{r}
+x[x>4] #Here we extract the elements of x having value greater than 4.
+```
+We can use the square brackets also for **changing** one or more values of the vector:
+
+```{r}
+x[1] <- 6 #Here we substitute the first element of the vector with 6.
+x
+```
+
+
+## Matrices
+
+Matrices are a **two-dimensional data structure**, where elements are arranged according to rows and columns. We can think the matrix as a collection of vectors.
+
+We can create a matrix using the function `matrix()`:
+
+:::: {style="display: grid; grid-template-columns: 1fr 21fr; grid-column-gap: 2px; place-items: start; padding: 2em 2em 2em 2em; border: 5px solid #f8f8f8;"}
+
+::: {}
+
+```{r, echo=1:15}
+X <- matrix(data = c(1:20), 
+            nrow = 4, 
+            ncol = 5, 
+            byrow = TRUE)
+```
+:::
+
+::: {}
+
+* `data`: vector of values used to fill the matrix.
+
+* `nrow`: the desired number of rows.
+
+* `ncol`: the desired number of columns.
+
+* `byrow`: logical value. If FALSE (the default) the matrix is filled by columns, otherwise the matrix is filled by rows.
+
+:::
+::::
+
+We can also fill the matrix with strings.
+
+As in the case of vectors, we can extract a subset of the matrix using the quare brackets `[]`. Here, the indices must be **two-dimensional**: one dimension for extracting the rows, and one dimension for extracting the columns.
+
+```{r}
+X[1:2, 4] #Here we extract the first and second rows and the fourth column. So two values
+```
+Also, here we can use logical indices instead of numerical ones or logical comparisons. If you want to select only one dimension, you must put nothing in the other dimension of the square brackets:
+
+```{r}
+X[1:2,] #Here we extract the first and second rows and all the columns. So ten values
+```
+```{r}
+X[,1:2] #Here we extract the first and second columns and all the rows So ten values
+```
+
+> The selection operation does not change the initial object. Therefore, it is necessary to save the result of the selection if you want to keep the changes. (This is valid also working with vectors).
+
+Other useful functions:
+
+- Matrix **dimension**:
+
+```{r}
+dim(X)
+```
+
+- Number of **columns**:
+
+```{r}
+ncol(X)
+```
+
+- Number of **rows**:
+
+```{r}
+nrow(X)
+```
+
+- **Combine** two or more matrices by columns (matrices must have the same number of rows):
+
+```{r}
+Y <- matrix(data = seq(from = 20, to =60, length.out = 5*4), nrow = 4, ncol = 5, byrow = TRUE)
+cbind(X, Y)
+```
+- **Combine** two or more matrices by rows (matrices must have the same number of columns):
+
+```{r}
+rbind(X, Y)
+```
+
+- **Transpose**, i.e., $X^\top$:
+
+```{r}
+t(X)
+```
+
+- **Product** between matrices:
+
+```{r}
+t(X) %*% Y
+```
+
+- **Inverse** of a matrix, i.e. $Z^{-1}$:
+
+```{r}
+Z <- matrix(rnorm(5*5), nrow = 5)
+solve(Z)
+```
+
+- Extract the **diagonal ** of a matrix:
+
+```{r}
+diag(Z)
+```
+
+- **Determinant** of matrix:
+
+```{r}
+det(Z)
+```
+
+> Using `+`, `-`, `*`, `/` between two matrices perform the element-wise operations.
+
+## Array
+
+We can create objects that have more than two dimensions, i.e., an array. We use the `array()` command by indicating the vector of values used to populate the object and the size of each of its dimensions:
+
+:::: {style="display: grid; grid-template-columns: 1fr 21fr; grid-column-gap: 2px; place-items: start; padding: 2em 2em 2em 2em; border: 5px solid #f8f8f8;"}
+
+::: {}
+
+```{r, echo=1:15}
+X <- array(data = rnorm(2*3*5), 
+           dim = c(2,3,5))
+```
+:::
+
+::: {}
+
+* `data`: vector of values used to fill the matrix.
+
+* `dim`: the dimensions for the array to be created, that is an integer vector of length one or more giving the maximal indices in each dimension.
+
+:::
+::::
+
+All the main functions and selection operations we have seen for arrays and vectors can be performed similarly with arrays. We can check the dimensions of the array using the `dim()` command.
+
+## Dataframe
+
+Dataframes are one of the most commonly used objects in `R` to represent data. These objects are two-dimensional as matrices, but they can contain every types of data (e.g., strings and numbers). We can think about dataframes as normal tables from Excel etc.
+
+
+:::: {style="display: grid; grid-template-columns: 1fr 21fr; grid-column-gap: 2px; place-items: start; padding: 2em 2em 2em 2em; border: 5px solid #f8f8f8;"}
+::: {}
+```{r}
+x_num <- rnorm(9, mean = 5)
+y_string <- rep(c("ciao", "hello", "hola"),3)
+db <- data.frame(Numbers = x_num, 
+                 Strings = y_string, 
+                 row.names = NULL, 
+                 stringsAsFactors = TRUE)
+```
+:::
+::: {}
+* ... = We must specify each column with its column name.
+
+* row.names = `NULL` or a single integer or character string specifying a column to be used as row names, or a character or integer vector giving the row names for the data frame.
+
+* stringsAsFactors = logical: should character vectors be converted to factors?
+:::
+::::
+
+We can select the elements of a dataframe in two ways:
+
+- select a column with the sign `$` and then the element of the column:
+
+```{r}
+db$Numbers[c(4,8)]
+```
+
+- select the columns and the rows using directly the square brackets `[]`:
+
+```{r}
+db[c(4,8), 1]
+```
+We can see the column names using the `colnames` command:
+
+```{r}
+colnames(db)
+```
+and change them:
+
+```{r}
+colnames(db) <- c("Col1", "Col2")
+```
+
+The same for the rows using the command `rownames` command.
+
+## List
+
+Lists are one of the most versatile and useful objects in `R`. The list can contain different types of objects as the dataframe but also having different dimensions since the elements of a list are completely indipendent.
+
+We create a list with the `list()` command:
+
+```{r}
+my_first_list <- list(my_array = X,
+                      my_data_frame = db,
+                      my_vector = x)
+```
+
+and we can call an object of this list 
+
+- using `$` 
+
+```{r}
+my_first_list$my_data_frame[1,2]
+```
+
+
+- using `[[]]` 
+
+```{r}
+my_first_list[[2]][1,2]
+```
+Since we have extracted an object from the list, all the things we have seen for vectors, matrices, dataframes etc can be applied directly.
+
+
+## Concluding 
+
+We can check the structure of our object (vector, matrix, array, dataframe) and its class using the `str()` function:
+
+```{r}
+str(X)
+```
+or check it using the functions `is.vector()`, `is.matrix()`, `is.array()` and `is.data.frame()`:
+
+```{r}
+is.matrix(X)
+```
+
+The `summary()` command shows us the structure of the object:
+
+```{r}
+summary(X)
+```
+
+
+```{r}
+summary(db)
+```
+
+and the functions `head()`/`tail()` returns the first/last parts of a vector, matrix, table, data frame or function:
+
+```{r}
+head(db)
+```
+
+```{r}
+tail(db)
+```
+
+# Other fundamental functions
+
+- Help?
+
+```{r, eval = FALSE}
+help("+") #Looking for help in understanding the use of +
+```
+
+- Where I am and where I want to go
+
+```{r, eval = FALSE}
+setwd("my_path") #Set Working Directory
+getwd() #Get Working Directory
+```
+
+- See what is in my working directory?
+
+```{r}
+ls() #return a vector of character strings giving the names of the objects in the specified environment.
+```
+
+- Save what we found in the working directory or a particular object?
+
+```{r, eval = FALSE}
+save(list = ls(), file = "myfirstR.RData") #Save everything in myfirstR.RData
+save(x, file = "myfirstR.RData")  #save x in myfirstR.RData
+```
+
+- Delete what we found in the working directory or a particular object?
+
+```{r, eval = FALSE}
+rm(list = ls()) #Deltere everything in my working directory
+rm(x) #Delete x
 ```
 
 # Load data
 
-How load data? depends... `r emo::ji("face")`
+How to upload data? Depends... 
 
-First of all, you must understand the type of document (xlsx, csv, xls, txt etc), generally, there will be a specific command:
+First see the format of your document (`.xlsx`, `.csv`, `.xls`, `.txt`, `.RData` etc), in general, there will be a corresponding command:
 
-```{r, echo = T, eval = F}
-read.table("path/file_name.txt") # txt
-read.csv("path/file_name.csv") # csv
-read.xlsx("path/file_name.xlsx") # xlsx
+- `load()`: Reads a `.RData` file.
+
+- `read.table()`: Reads a delimited (space, tab, comma) data file.
+
+- `read.csv()`: Reads a `.csv` file.
+
+- `read_excel()`: Reads a `.xlsx` file. You must install the package `readxl`.
+
+Inside the parenthesis you must specify the path where the file is and some other options $\rightarrow$ check these options using the help function.
+
+For example:
+
+```{r, eval = FALSE}
+help("read.table")
 ```
 
-etc.. if you have doubts, use the ``help``, google, stackoverflow or [R-bloggers](https://www.r-bloggers.com/)! `r emo::ji("smile")`
+Alternatively you can use the toolbar:
 
-or you can go to File $\rightarrow$ Import Datasets $\rightarrow$ ...
+`Files > Import Datasets >`
 
-# Objects
+# Basic Tidyverse Concepts
 
-## Vector
- 
-```{r, echo = T}
-pluto <- c(1:100) #create a vector containing number from 1 to 100
-pluto1 <- seq(1,500,5) #create a vector with values from 1 to 500 for every 5 values
-pluto2 <- rep(10,5) #create a vector where the value 10 is repeated 5 times
-pluto[3] #recall the element of the vector pluto that is at position 3
-pluto[1:3] #recall the element of the vector pluto that is in the 1,2,3 position
-is.vector(pluto) #check that pluto is a vector
-length(pluto) #dimension of vector pluto?
-sort(pluto) #we sort pluto
-pluto/5 #we divide each element of pluto by 5
+The `tidyverse` is not really a package, but a collection of packages. Let install it and load it in our working directory:
+
+```{r, eval = FALSE}
+install.packages("tidyverse")
 ```
 
-## Matrix
- 
-```{r, echo = T}
-foo <- matrix(data = 10, nrow = 10, ncol = 5) #Create a matrix 
-#with 10 rows and 5 columns containing only 10
-foo1 <- matrix(data = foo, nrow = 20, ncol = 5, byrow = T) #let's put foo in
-#foo! starting with rows (byrow)
-foo2 <- cbind(pluto,pluto1) #Unit the two vectors by column
-foo3 <- rbind(pluto,pluto1) #Unit the two vectors by row
-dim(foo) #Dimension of foo?
-ncol(foo) #number of columns of foo?
-nrow(foo) #number of rows of foo?
-is.matrix(foo) #Check that foo is an array 
+```{r}
+library(tidyverse)
 ```
 
-`r emo::ji("boom")` if you don't remember $\rightarrow$ `help(matrix)`! 
+`Tidyverse` is based on the **pipe operator** i.e.,`%>%`. It connects two function calls by making the value returned by the first call the first argument of the second call:
 
-## Data-frame
- 
-```{r, echo = T}
-rick <- data.frame(foo2[1:20,]) #create a dataframe named rick 
-#which takes the first 20 observations of foo2
-dim(rick) #dimension? nrow, ncol etc as a matrix
-colnames(rick) #column names?
-rownames(rick) #row names?
-rownames(rick) <- letters[1:dim(rick)[1]] #rename the rows of rick 
-#as the first 20 letters of the alphabet
-rick[10,2] #recall the element of the 10th row and 2nd column
-rick$pluto #recall the variable pluto (first column)
+```{r}
+c(1:3) %>% rep(3) 
 ```
- 
-> **_Question:_** _Which are the difference between `data.frame` e `matrix`?_ 
+returns the same output as
+
+```{r}
+rep(c(1:3), 3)
+```
+
+We can use the pipe more than one times:
+
+```{r}
+c(1:3) %>% rep(3) %>% length()
+```
+
+By default the value of the left-hand call is piped into the right-hand call as the first argument. You can make it some other argument by referring to it as the dot `.`, for example:
+
+```{r}
+3 %>% rep(c(1:3), .) 
+```
+
+## `dplyr`
+
+Inside the `tidyverse` function we have the useful `dplyr` package. We will see only the main functions of this package, but you can use the basic `R` command proposed before instead of these ones. 
+
+- `filter()`: Subset **rows** using column values
+
+- `select()`: Subset **columns** using their names and types
+
+- `mutate()`: Create, modify, and delete **columns**
+
+- `group_by()`: **Group** by one or more variables
+
+- `summarize()`: Summarise each group to **fewer rows**
+
+Let see some examples. First of all, we load the `R` dataset `ChickWeight` from the package `datasets`
 
 
-Before continuing...
+```{r}
+library(datasets)
+data("ChickWeight")
+```
 
- 1. Questions `r emo::ji("question")`
- 
- 2. But do I lose everything I have uploaded/written? No of course `r emo::ji("smile")`
- 
-```{r, echo = T, eval = F}
-save(rick, file = 'your_path/my_first_RData.RData') #save the object 
-#rick in my_my_first_RData
-load("your_path/my_first_RData.RData") #and load it back into the working directory!
-``` 
+You can see the description of this dataset typing `help(ChickWeight)`. So, we want:
+
+- select only the weight and chick columns:
+
+```{r}
+ChickWeight %>% select(weight, Chick) %>% head()
+```
+
+- and compute the mean of the weight for each chick:
+
+```{r}
+ChickWeight %>% select(weight, Chick) %>%
+  group_by(Chick) %>%
+  summarize(weight = mean(weight, na.omit = TRUE))
+```
+
+- filter only the chick with weight greater than the global mean
+
+```{r}
+ChickWeight %>% select(weight, Chick) %>%
+  group_by(Chick) %>%
+  summarize(weight = mean(weight, na.omit = TRUE)) %>%
+  filter(weight >= mean(weight))
+```
+
+> Why did we look at the `dplyr` package if we could directly use the basic functions in `R`? We will use another useful and famous `R` package which follows a similar structure $\rightarrow$ `ggplot2`!
+
+
+
 
 # A bit of Exploratory Data Analysis (EDA)
 
@@ -271,11 +827,11 @@ This is a crucial part and usually takes up most of the time. A proper and exten
 
 Let's take a real example, we will use the `Happiness and Alcohol Consumpation` data set available at [Kaggle](https://www.kaggle.com/marcospessotto/happiness-and-alcohol-consumption) or in the `Datasets` folder. 
 
-```{r, echo = T}
+```{r read_example, echo = T}
 DB <- read.csv("Datasets/HappinessAlcoholConsumption.csv")
 ```
 
-Were recorded `r library(tidyverse); DB %>% ncol()` different characteristics on `r library(tidyverse); DB %>% nrow()` countries during the year $2016$. In particular, these features were:
+The dataset comprises `r library(tidyverse); DB %>% ncol()` different characteristics on `r library(tidyverse); DB %>% nrow()` countries during the year $2016$. In particular, these features were:
 
 - *Country* - Name of the country;
 - *Region* - Region the country belongs to;
@@ -295,7 +851,7 @@ and see some examples of type of objects:
 ::: {}
 __R commands__ 
 
-```{r eval = FALSE}
+```{r check_db, eval = FALSE}
 is.data.frame(DB) 
 str(DB) 
 head(DB) 
@@ -326,7 +882,7 @@ We must transform the variables `Country`, `Region` and `Hemisphere` as factors 
 ::: {}
 __R commands__ 
 
-```{r dat_structure}
+```{r preprocessing, dat_structure}
 # Variable "Country"
 DB$Country <- as.factor(DB$Country) 
 levels(DB$Country)
@@ -352,7 +908,7 @@ __Comments__
 
 Using `summary()` on an object of class `data.frame`, we can compute basic statistics for each variable in the data set: minimum, maximum and mean values and quartiles:
 
-```{r}
+```{r get_summary}
 summary(DB)
 ```
 
@@ -376,7 +932,7 @@ out
 
 We make histograms plot for each quantitative variable. We can use base `R` functions:
 
-```{r histograms0, fig.height=3}
+```{r histograms, fig.height=3}
 var_interest_numeric <- colnames(DB)[!(colnames(DB) %in% c("Country", "Region", "Hemisphere"))]
 
 for(i in c(1:length(var_interest_numeric))){
@@ -390,14 +946,14 @@ for(i in c(1:length(var_interest_numeric))){
 
 or we can use the packages `dplyr`, `tidyr`, `ggplot2`:
 
-```{r}
+```{r load_libraries}
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 ```
 
 
-```{r fig.height=3}
+```{r example_dplyr, fig.height=3}
 DB %>%
   dplyr::select(all_of(var_interest_numeric)) %>%
   gather(cols, value) %>%
@@ -416,7 +972,7 @@ for(i in c(1:length(var_interest_factor))){
 
 We do not consider the variable `Region` since it has $122$ unique values. In the same way as before, but using the command `geom_bar()`, we can use the packages `dplyr`, `tidyr`, `ggplot`:
 
-```{r fig.height=3}
+```{r ggplot_example, fig.height=3}
 DB %>%
   dplyr::select(all_of(var_interest_factor)) %>%
   gather(cols, value) %>%
@@ -434,7 +990,7 @@ for(i in c(1:length(var_interest_numeric))){
 
 or the `geom_boxplot()` function from the package `ggplot2`:
 
-```{r fig.height=3}
+```{r boxplot, fig.height=3}
 DB %>%
   dplyr::select(all_of(var_interest_numeric)) %>%
   gather(cols, value) %>%
@@ -583,13 +1139,13 @@ The interest lies in testing the coefficients of the linear model, specifically 
 - The alternative hypothesis is that the coefficient associated with `Beer_PerCapita` is not zero -- $H_1: \beta_1 \neq 0$ $\longrightarrow$ there exists a relationship between (the dependent variable) `HappinessScore` and (the independent variable) `HappinessScore`.
 - If the $p$-value associated to the estimate of $\beta_1$ is less than 0.05, we usually reject the null hypothesis.
 
-To see detailed results of the model, we can use the `summary` method for class `lm()`, the class of objects representing linear models in <tt>R</tt> (one of them): this gives us $p$-values and standard errors for all coefficients in the model, as well as the $R^2$ statistic and $F$-statistic: the former measures the proportion of the variation in the dependent variable explained by all of independent variables in the model, while, if the latter is statistically significant, the model can be considered "good". 
+To see detailed results of the model, we can use the `summary` method for class `lm()`, the class of objects representing linear models in `R` (one of them): this gives us $p$-values and standard errors for all coefficients in the model, as well as the $R^2$ statistic and $F$-statistic: the former measures the proportion of the variation in the dependent variable explained by all of independent variables in the model, while, if the latter is statistically significant, the model can be considered "good". 
 
 :::: {style="display: grid; grid-template-columns: auto 2fr; grid-column-gap: 20px; place-items: start;"}
 ::: {}
 __R commands__
 
-```{r slr1}
+```{r linear_regression}
 # Simple linear regression model:
 lm.fit.simple <- lm(formula = HappinessScore ~ Beer_PerCapita, 
                     # formula equivalent to the model in "EQ. 1"
@@ -624,7 +1180,7 @@ We can say that the coefficient associated to `Beer_PerCapita` is statistically 
 
 We can compute the $95\%$ confidence interval for the coefficient $\beta_0$ and $\beta_1$:
 
-```{r slr2b}
+```{r linear_regression_output}
 # Confidence intervals
 confint(lm.fit.simple)
 ```
@@ -652,7 +1208,7 @@ for $\beta_1$.
 
 As an example:
 
-```{r slr3}
+```{r linear_regression_prediction}
 # Confidence intervals
 predict(lm.fit.simple,                                       # lm fitted object
         newdata = data.frame(Beer_PerCapita = (c(40, 125, 200))),          # new values for Beer_PerCapita (to be given as data.frame)
@@ -670,7 +1226,7 @@ same point but the latter are substantially wider.
 
 The plot of the regression model with both confidence and prediction intervals can be obtained as follows:
 
-```{r slr4}
+```{r linear_regression_prediction1}
 # New data
 new_Beer_PerCapita <- seq(min(DB$Beer_PerCapita), max(DB$Beer_PerCapita), by = 0.05)
 # 95% confidence interval for regression line
@@ -714,7 +1270,7 @@ This non-linearity can be examineed also through some diagnostic plots. In order
 ::: {}
 __R commands__
 
-```{r slr5, fig.height=10, fig.width=10, echo=c(1,2,3,5,6)}
+```{r linear_regression_diagnostic, fig.height=10, fig.width=10, echo=c(1,2,3,5,6)}
 # Diagnostic plots
 par(mfrow = c(2,2))
 plot(lm.fit.simple)
@@ -744,7 +1300,7 @@ Below we use the syntax `formula = response variable ~.` inside `lm()` to includ
 
 > **_Question:_** _What does we find? How can we interpret the results of the regression models? And in terms of goodness of the model, what does the $F$-statistic tell us?_
 
-```{r mlr1, echo=1:2}
+```{r multiple_linear_regression, echo=1:2}
 lm.fit.multiple <- lm(HappinessScore ~. -Country, data = DB)
 summary(lm.fit.multiple)
 # car::vif(lm.fit.multiple)
@@ -754,7 +1310,7 @@ summary(lm.fit.multiple)
 
 It is easy to include interaction terms in a linear model using the `lm()` function.
 
-```{r it}
+```{r multiple_linear_regression_interactions}
 lm.fit.interactions <- lm(HappinessScore ~ Beer_PerCapita*Hemisphere, data = DB)
 summary(lm.fit.interactions)
 ```
@@ -765,14 +1321,14 @@ summary(lm.fit.interactions)
 
 The `lm()` function can also accommodate non-linear transformations of the predictors. For instance:
 
-```{r nonLinearVar1}
+```{r multiple_linear_regression_nonlinear}
 lm.fit.nonlinear <- lm(HappinessScore ~ Beer_PerCapita + I(Beer_PerCapita^2), data = DB)
 summary(lm.fit.nonlinear)
 ```
 
 The near-zero $p$-value associated with the quadratic term suggests that it leads to an improved model. We use the `anova()` function to further quantify the extent to which the quadratic fit is superior to the linear fit:
 
-```{r nonLinearVar2}
+```{r multiple_linear_regression_anova}
 anova(lm.fit.simple, lm.fit.nonlinear)
 ```
 
@@ -780,7 +1336,7 @@ The `anova()` function performs a hypothesis test comparing the two models. The 
 
 > **_Question:_** _Is this surprising or not? And what can we say from the diagnostics below?_
 
-```{r nonLinearVar3, fig.height=10, fig.width=10, echo=c(1,2,4,5)}
+```{r multiple_linear_regression_diagnostic, fig.height=10, fig.width=10, echo=c(1,2,4,5)}
 par(mfrow = c(2,2))
 plot(lm.fit.nonlinear)
 par(mfrow = c(1,1))
@@ -801,13 +1357,16 @@ What to do?
 
    - Google, [R-bloggers](https://www.r-bloggers.com/), ...
 
-   - [R Cookbook](https://www.amazon.com/Cookbook-OReilly-Cookbooks-Paul-Teetor/dp/0596809158/ref=dp_rm_title_0)
+   - [R cookbook](https://rc2e.com/)
    
    - [R in a Nutshell](https://www.amazon.com/R-Nutshell-In-OReilly/dp/144931208X/ref=dp_rm_title_3)
    
    - [Learning R](https://www.amazon.com/Learning-R-Richard-Cotton/dp/1449357105/ref=dp_rm_title_1)
    
-   - [An Introduction to Statistical Learning: with Applications in R](https://www.amazon.com/Introduction-Statistical-Learning-Applications-Statistics/dp/1461471370/ref=pd_sim_14_1?ie=UTF8&dpID=41oQwj8rS0L&dpSrc=sims&preST=_AC_UL160_SR106%2C160_&refRID=0CHFMDE74NCF14EF71EM)
+   - [An Introduction to Statistical Learning: with Applications in R](https://hastie.su.domains/ISLR2/ISLRv2_website.pdf)
+   
+   - [The Tidyverse cookbook](https://rstudio-education.github.io/tidyverse-cookbook/)
+
    
   
 

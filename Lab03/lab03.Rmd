@@ -98,7 +98,7 @@ __R commands__
 ```{r}
 set.seed(1234)
 plot(net, 
-     vertex.size = .5*log(igraph::betweenness(net)+1),
+     vertex.size = log(igraph::betweenness(net)+1),
      vertex.color = as.numeric(factor(aType)),
      vertex.label=V(net)$name, 
      vertex.label.color = "black",
@@ -122,7 +122,7 @@ Alternatively, we can directly add these changes in the `igraph` object:
 V(net)$label = V(net)$name
 V(net)$label[which(B_net < quantile(B_net, .99))] = NA
 V(net)$label.color = "black"
-V(net)$size = .5*log(igraph::betweenness(net)+1)
+V(net)$size = log(igraph::betweenness(net)+1)
 V(net)$color = as.numeric(factor(aType))
 E(net)$arrow.size<-.2 
 E(net)$edge.color<-"gray80"
@@ -141,7 +141,7 @@ We can even set a specific network layout. In very short terms, a **layout** is 
 
 1. **Graph layout by multidimensional scaling**
 
-The multidimensional scaling (**MDS**) algorithm tries to place nodes based on some measure of similarity or distance between them. More similar nodes are plotted closer to each other. By default, the measure used is based on the shortest paths between nodes in the network. We can change that by using our own distance matrix (however defined) with the parameter dist. MDS layouts are nice because positions and distances have a clear interpretation. The problem with them is visual clarity: nodes often overlap, or are placed on top of each other.
+The multidimensional scaling (**MDS**) algorithm tries to place nodes based on some measure of similarity or distance between them. More similar nodes are plotted closer to each other. By default, the measure used is based on the shortest paths between nodes in the network. We can change that by using our own distance matrix within the argument `dist`. MDS layouts are nice because positions and distances have a clear interpretation. The problem with them is visual clarity: nodes often overlap, or are placed on top of each other.
 
 ```{r}
 llMDS = layout_with_mds(net)
@@ -151,31 +151,28 @@ plot(net,layout= llMDS)
 
 2. **The Fruchterman-Reingold layout algorithm**
 
-Fruchterman-Reingold (**FR**) is one of the most used force-directed layout algorithms out there. Force-directed layouts try to get a nice-looking graph where edges are similar in length and cross each other as little as possible. They simulate the graph as a physical system. Nodes are electrically charged particles that repulse each other when they get too close. The edges act as springs that attract connected nodes closer together. As a result, nodes are evenly distributed through the chart area, and the layout is intuitive in that nodes which share more connections are closer to each other. The disadvantage of these algorithms is that they are rather slow and therefore less often used in graphs larger than ~$1000$ vertices.
+Fruchterman-Reingold (**FR**) is one of the most used force-directed layout algorithms. Force-directed layouts try to get a nice-looking graph where edges are similar in length and cross each other as little as possible. They simulate the graph as a physical system. Nodes are electrically charged particles that repulse each other when they get too close. The edges act as springs that attract connected nodes closer together. As a result, nodes are evenly distributed through the chart area, and the layout is intuitive in that nodes which share more connections are closer to each other. The disadvantage of these algorithms is that they are rather slow and therefore less often used in graphs larger than ~$1000$ vertices. The algorithm iteratively positions the nodes so that the forces of attraction and repulsion are balanced, generating a layout that reflects the relationships of the graph.
 
 ```{r}
 set.seed(1)
 llFR = layout_with_fr(net,niter = 5000)
 plot(net,layout= llFR)
-l <- layout_with_fr(net, niter=5000)
 ```
 
-With force-directed layouts, you can use the `niter` parameter to control the number of iterations to perform. The default is set at $500$ iterations. You can lower that number for large graphs to get results faster and check if they look reasonable.
+With force-directed layouts, you can use the `niter` parameter to control the number of iterations to perform. The default is set at $500$ iterations. You can lower that number for large graphs to get results faster and check if they look reasonable. 
 
-You will also notice that the **Fruchterman-Reingold** layout is not deterministic- different runs will result in slightly different configurations. Saving the layout in `l` allows us to get the exact same result multiple times, which can be helpful if you want to plot the time evolution of a graph, or different relationships– and want nodes to stay in the same place in multiple plots.
+You will also notice that the **Fruchterman-Reingold** layout is not deterministic- different runs will result in slightly different configurations. Saving the layout allows us to get the exact same result multiple times, which can be helpful if you want to plot the time evolution of a graph, or different relationships– and want nodes to stay in the same place in multiple plots.
 
 ```{r}
-par(mfrow=c(2,2), mar=c(0,0,0,0)) # plot four figures- 2 rows, 2 columns 
-plot(net, layout=layout_with_fr) 
-plot(net, layout=layout_with_fr) 
-plot(net, layout=l) 
-plot(net, layout=l)
+par(mfrow=c(1,2), mar=c(0,0,0,0)) # plot four figures- 1 rows, 2 columns 
+plot(net, layout=layout_with_fr)
+plot(net, layout=llFR) 
 ```
 
 
 3. **The Kamada-Kawai layout algorithm**
 
-Another popular force-directed algorithm that produces nice results for connected graphs is Kamada Kawai (**KK**). Like Fruchterman Reingold, it attempts to minimize the energy in a spring system.
+Another popular force-directed algorithm that produces nice results for connected graphs is Kamada Kawai (**KK**). Like Fruchterman Reingold, it attempts to minimize the energy in a spring system. However, the goal of the algorithm is to find a node layout that minimizes the discrepancy between the actual distances between nodes and the distances calculated in the layout.
 
 ```{r}
 par(mfrow= c(1,1))
@@ -193,7 +190,7 @@ l <- layout_with_graphopt(net)
 plot(net, layout=l)
 ```
 
-The available `graphopt` parameters can be used to change the mass and electric charge of nodes, as well as the optimal spring length and the spring constant for edges. The parameter names are `charge` (defaults to $0.001$), `mass` (defaults to $30$), `spring.length` (defaults to $0$), and `spring.constant` (defaults to $1$). Tweaking those can lead to considerably different graph layouts.
+The available `graphopt` parameters can be used to change the mass and electric charge of nodes. The parameter names are `charge` (defaults to $0.001$), `mass` (defaults to $30$), and `spring.length` (defaults to $0$). Tweaking those can lead to considerably different graph layouts.
 
 ```{r}
 l1 <- layout_with_graphopt(net, charge=0.02) 
@@ -274,25 +271,25 @@ right.path<-shortest_paths(net,
                         output="both")
 
 ecol<-rep("gray80",ecount(net)) 
-ecol[unlist(right.path$epath)]<-"orange" 
+ecol[unlist(right.path$epath)]<-"orange" #color edges
 ew<-rep(2,ecount(net)) 
-ew[unlist(right.path$epath)]<-4  
+ew[unlist(right.path$epath)]<-4  #size
 vcol<-rep("gray40",vcount(net)) 
-vcol[unlist(right.path$vpath)]<-"gold" 
+vcol[unlist(right.path$vpath)]<-"gold" #color vertices
 plot(net,
      vertex.color=vcol,
      edge.color=ecol, 
      edge.width=ew,edge.arrow.mode=0)
 ```
 
-We can highlight the edges going into or out of a vertex, for instance the `Left`. For a single node, use `incident()`, for multiple nodes use `incident_edges()`:
+We can highlight the edges going into or out of a vertex (or both), for instance the `Left`. For a single node, use `incident()`, for multiple nodes use `incident_edges()`:
 
 ```{r}
-inc.edges <- incident(net, V(net)[aType=="Left"], mode="all") 
+inc.edges <- incident(net, V(net)[aType=="Left"], mode="all") #mode argument ignored for undirected graphs
 ecol <- rep("gray80", ecount(net)) 
 ecol[inc.edges] <- "orange" 
 vcol <- rep("grey40", vcount(net)) 
-vcol[V(net)$aType=="News"] <- "gold" 
+vcol[V(net)[aType=="News"]] <- "gold" 
 plot(net, 
      vertex.color=vcol, 
      edge.color=ecol)
@@ -364,7 +361,7 @@ __R commands__
 ```{r}
 library(tidygraph)
 df = as_tbl_graph(net)
-df %>% mutate(btw= centrality_betweenness()) %>%
+df %>% mutate(btw= .5*log(centrality_betweenness()+1)) %>%
 ggraph(layout="fr") + 
   geom_edge_link(show.legend = FALSE, color="gray70") +
   geom_node_point(aes(colour = aType, size= btw), show.legend=T) + 

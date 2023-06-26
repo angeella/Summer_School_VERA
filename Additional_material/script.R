@@ -1,8 +1,9 @@
 
-## data: conflicts between countries during the Cold War, every five years from 1950 to 1985
+## data: conflicts between countries during the Cold War, 
+#every five years from 1950 to 1985
 
 rm(list=ls())
-war = read.table('war.txt')
+war = read.table('Additional_material/war.txt')
 war = as.matrix(war)
 str(war)
 
@@ -11,7 +12,6 @@ war = 1*(war <  0)
 isSymmetric(war)
 lattice::levelplot(war)
 
-
 library(igraph)
 
 net = graph_from_adjacency_matrix(war, mode = 'undirected', weighted = NULL, diag=F)
@@ -19,7 +19,8 @@ net = graph_from_adjacency_matrix(war, mode = 'undirected', weighted = NULL, dia
 E(net)
 V(net)
 
-edge_density(net) #That is, of all the possible connections, we observe approximately 5 out of 100.
+edge_density(net) #That is, of all the possible connections, 
+#we observe approximately 5 out of 100.
 
 
 zeros = which(degree(net) < 1)
@@ -28,6 +29,7 @@ net = delete.vertices(net,zeros)
 
 ## degree distriution
 degree(net)
+dev.off()
 hist(degree(net),breaks = 30,col='lavender')
 
 #?shortest_paths
@@ -39,6 +41,8 @@ hist(sqrt(betweenness(net)), breaks = 20, col = 'lavender')
 diameter(net)
 
 plot(net)
+
+
 
 
 set.seed(1)
@@ -60,7 +64,9 @@ V(net)$size = sqrt(betweenness(net))
 plot(net, layout= net_lo)
 
 
-comm = multilevel.community(net)#This function implements the multi-level modularity optimization algorithm for finding community structure
+comm = multilevel.community(net)#This function implements the 
+#multi-level modularity optimization algorithm for 
+#finding community structure
 comm2 = cluster_fast_greedy(net)
 
 
@@ -117,7 +123,8 @@ summary(net2)
 #We begin with a simple model, containing only one term that 
 #represents the total number of edges in the network
 summary(net2~edges) # how many edges?
-m0 = ergm(net2~edges, estimate = 'MPLE')#maximum pseudolikelihood estimator is returned
+m0 = ergm(net2~edges, estimate = 'MPLE')#maximum pseudolikelihood estimator 
+#is returned
 summary(m0)
 
 #This simple model specifies a single homogeneous probability for all ties, 
