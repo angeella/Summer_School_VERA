@@ -444,9 +444,10 @@ manipulations on network data with `dplyr` syntax. Specifically, the following f
 __R commands__ 
 
 ```{r}
+#load("../Lab02/lab02.RData")
 V(net)$better_gr = groupL
 
-df = as_tbl_graph(net)
+df = as_tbl_graph(net, directed = FALSE)
 df = df %>% activate(edges) %>% 
   mutate(e_col = ifelse(.N()$better_gr[to]
 == .N()$better_gr[from], .N()$better_gr[from], NA))
