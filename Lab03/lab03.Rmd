@@ -141,7 +141,7 @@ We can even set a specific network layout. In very short terms, a **layout** is 
 
 1. **Graph layout by multidimensional scaling**
 
-The multidimensional scaling (**MDS**) algorithm tries to place nodes based on some measure of similarity or distance between them. More similar nodes are plotted closer to each other. By default, the measure used is based on the shortest paths between nodes in the network. We can change that by using our own distance matrix within the argument `dist`. MDS layouts are nice because positions and distances have a clear interpretation. The problem with them is visual clarity: nodes often overlap, or are placed on top of each other.
+The multidimensional scaling (**MDS**) algorithm tries to place nodes based on some measure of similarity or distance between them. More similar nodes are plotted closer to each other. By default, the measure used is based on the **shortest paths** between nodes in the network. We can change that by using our own distance matrix within the argument `dist`. MDS layouts are nice because positions and distances have a clear interpretation. The problem with them is visual clarity: nodes often overlap, or are placed on top of each other.
 
 ```{r}
 llMDS = layout_with_mds(net)
