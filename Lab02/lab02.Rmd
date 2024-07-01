@@ -4,7 +4,7 @@ author: |
   | Angela Andreella 
   | Ca' Foscari University of Venice
   | angela.andreella@unive.it
-date: '2023-06-27'
+date: '2024-07-02'
 output:
   prettydoc::html_pretty:
     theme: tactile
@@ -28,67 +28,77 @@ geometry: margin = 1in
 knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning = F, message = F)
 ```
 
-# Introduction
 
-The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for sharing part of this material. 
-
-In network maps several key elements are used to control the outcome. The major ones are *color*, *size*, *shape*, and *position*.
-
-<center>
-![](Images/elements_network.png){ width=80% }
-</center>
-
-> `r emo::ji("boom")` **_Please note_** _*Arrows* shows the direction of the relationship, and *labels* the identification._
-
-The main package we are going to use is the package `igraph`.
+For creating, decorating, and assessing basic proprieties of network graph, the package `igraph` is particularly useful. It contains functions for (relatively!) straightforward implementation and rapid prototyping of graph algorithm, and allows for the fast handling of large graphs (e.g., on the order of millions of vertices and edges).
 
 ```{r, eval = FALSE}
 install.packages("igraph") 
 ```
 
+```{r}
+library(igraph)
+```
+
+
+Thought the tutorial, we consider a graph as $G = (V,E)$ with a set $V$ of vertices and a set $E$ of edges, where elements of $E$ are unordered pairs $\{u,v\}$ of distinct vertices $u,v \in V$. The number of vertices $N_v = |V|$ and the number of edges $N_e = |E|$. Often, and without loss of
+generality, we will label the vertices simply with the integers $1, \dots, N_v$, and the edges, analogously.
+
+
+
 # An example of network: 3 million Russian troll tweets
 
 In this tutorial, we will analyze data used in the *FiveThirtyEight* story [Why We’re Sharing 3 Million Russian TrollTweets](https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/). The original data set is composed by $3$ million of tweets from suspected twitter account. The data are prepossessed, if you want to see the original data set, please see this [link](https://www.kaggle.com/fivethirtyeight/russian-troll-tweets).
 
-We want to analyze the interaction structure between these twitter profiles, excluding (in this case) the interaction (comment/re tweet), the direction, and the number of time this interaction appear (size of the edge). You can find the data set in the `Datasets` folder. It is composed by two matrices, `Y` describes the edges (two-column matrix, where each row defines one edge), while `X` report some information about the nodes (i.e., twitter profiles, $1245$ in total):
+We want to analyze the interaction structure between these twitter profiles, excluding (in this case):
 
-- `accountcategory`: main category for type of account, e.g., Commercial, NewsFeed, etc (macro category);
+- the interaction (comment/re tweet), 
 
-- `accounttype`: type of account (thinner account category than `accountcategory`);
+- the direction, and 
 
-- `activity`: number of activities;
+- the number of time this interaction appear (size of the edge).
 
-- `maxfollowers`: maximum number of followers profiles;
-
-- `maxfollowing`: maximum number of following profiles;
-
-- `maxpostdate`: last registered post;
-
-- `minfollowers`: minimum number of followers profiles;
-
-- `minfollowing`: minimum number of following profiles;
-
-- `minpostdate`: first registered post;
-
-- `vertex.names`: name of the twitter account (i.e., the name of the node of the graph).
-
-# Edge, vertex and attributes
-
-First of all, we must load the dataset and the `igraph` package. You can find the dataset `russian_trolls` in `Lab02/Datasets`. 
+You can find the dataset `russian_trolls` as `.RData` in the  `Lab02/Datasets` folder: 
 
 ```{r}
 load("Datasets/russian_trolls.RData")
-library(igraph)
 ```
 
-So, let's transform our data set as an `igraph` class object:
+It is composed by two matrices:
+
+1. `Y` describes the edges (2-column matrix, where each row defines one edge)
+
+2. `X` reports some information about the nodes (i.e., twitter profiles, $1245$ in total):
+
+  - `accountcategory`: main category for type of account, e.g., Commercial, NewsFeed, etc (macro category);
+
+  - `accounttype`: type of account (thinner account category than `accountcategory`);
+
+  - `activity`: number of activities;
+
+  - `maxfollowers`: maximum number of followers profiles;
+
+  - `maxfollowing`: maximum number of following profiles;
+
+  - `minfollowers`: minimum number of followers profiles;
+
+  - `minfollowing`: minimum number of following profiles;
+  
+  - `maxpostdate`: last registered post;
+
+  - `minpostdate`: first registered post;
+
+  - `vertex.names`: name of the twitter account (i.e., the name of the node of the graph).
+
+# Edge, vertex and attributes
+
+Let transform our data set as an `igraph` class object:
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
 __R commands__ 
 
 ```{r}
-net = graph_from_edgelist(Y,directed = F) 
+net = graph_from_edgelist(Y, directed = F) 
 
 for(j in 1:ncol(X)){ 
   net = net %>% 
@@ -127,6 +137,15 @@ So, there are two numbers ($1245$ and $2857$) which refer to the number of nodes
 
 Then, we have the list of node and edge attributes. For example (v/c) is vertex-level character attribute.
 
+With
+
+```{r}
+ecount(net) 
+vcount(net)
+```
+
+you can compute the total number of edges $N_e$ and vertices $N_v$ respectively.
+
 Before we saw how see the vertex-level attribute `name`. You can access to nodes, edges and their attributes by:
 
 
@@ -149,12 +168,11 @@ __Comments__
 :::
 ::::
 
-# Degree, geodesic distance, closeness, and betweenness
+# Vertex Characteristics
 
 First of all, we will eliminate the nodes without connections, i.e., degree equals $0$.
 
-> `r emo::ji("star")` **Remember**: The degree indicates the number of adjacent
-nodes, that is the number of nodes to which the node is connected. It measures how connected a node is, so it is a local measure.
+> `r emo::ji("star")` **Remember**: The degree indicates the number of adjacent to which the node is connected. It measures how connected a node is, so it is a local measure.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -173,14 +191,16 @@ __Comments__
 :::
 ::::
 
-Then, also we can see which are the nodes with high degree:
+Then, also we can see which are the nodes with 5 highest degree:
 
 ```{r}
 D_net = igraph::degree(net)
 sort(D_net,decreasing = T)[1:5]
 ```
 
-and we can represent the nodes in a histogram:
+So, `r names(sort(D_net,decreasing = T)[1:5])` can be seen as the most 5 connected twitter accounts, `r names(sort(D_net,decreasing = T)[1])` is connected with 244 twitter accounts.
+
+We can represent the degree nodes in a histogram:
 
 ```{r}
 par(mfrow=c(1,2))
@@ -188,18 +208,48 @@ hist(D_net,nclass = 100, main = "Degree distribution", xlab = "Degree")
 hist(igraph::degree(net,normalized = T),nclass=100, main = "Degree distribution (normalized)", xlab = "Normalized degree")
 ```
 
-The normalized degrees are simply the degrees divided by $(V-1)$ where $V$ is the number of nodes. So, we have a measure with range $[0,1]$.
+The normalized degrees are simply the degrees divided by $(N_v-1)$ where $N_v$ is the number of nodes. So, we have a measure with range $[0,1]$.
 
-We can compute also the **graph density**, which is the ratio of the number of edges and the number of possible edges (i.e., it is a global measure):
+
+We can compute also the **graph density**, which is the ratio of the number of edges and the number of possible edges (i.e., it is a **global measure**):
 
 ```{r}
 edge_density(graph = net)
 ```
 
 
-The network follows a `` power-law`` structure, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. Clearly the shape of the distribution does not change when considering the normalized or absolute quantity. The distribution of normalized degrees, however, allows us to observe that even the most connected nodes present a small number of connections, compared to the size of the network. This result is not surprising, if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
+The network follows a **power-law structure**, where the distribution of the nodes has an exponential decay as the degree increases: many nodes have a small number of connections ($1$ or $2$), while a small number of nodes have many. 
 
-A fundamental concept is the **geodesic distance**. The `igraph` library computes this quantities efficiently. For example, to calculate the path connecting two nodes:
+Clearly the shape of the distribution does not change when considering the normalized or absolute quantity. The distribution of normalized degrees, however, allows us to observe that even the most connected nodes present a small number of connections, compared to the size of the network. This result is not surprising, if we consider that the density of the network is about $0.004$. That is, of all the possible connections, we observe approximately $4$ out of $1000$.
+
+Given the nature of the decay in this distribution, a log–log scale is more effective in summarizing the degree information.
+
+```{r}
+par(mfrow= c(1,1))
+dd.net <- degree_distribution(net)
+d <- 1:max(degree(net))-1
+ind <- (dd.net != 0)
+plot(d[ind], dd.net[ind], log="xy", col="blue",
+xlab=c("Log-Degree"), ylab=c("Log-Intensity"),
+main="Log-Log Degree Distribution")
+```
+
+We see that there is a fairly linear decay in the log-frequency as a function of log-degree. 
+
+Beyond the degree distribution itself, it can be interesting to understand the manner in which vertices of different degrees are linked with each other. Useful in assessing this characteristic is the notion of the **average degree of the neighbors of a given vertex**.
+
+```{r}
+a.nn.deg.net <- knn(net,V(net))$knn
+plot(degree(net), a.nn.deg.net, log="xy",
+col="goldenrod", xlab=c("Log Vertex Degree"),
+ylab=c("Log Average Neighbor Degree"))
+```
+
+> What can we say?
+
+There is a tendency for vertices of higher degrees to link with vertices with lower degrees, vertices of lower degree tend to link with vertices of both lower and higher degrees.
+
+A fundamental concept is also the **geodesic distance**. The `igraph` library computes this quantities efficiently. For example, to calculate the path connecting two nodes:
 
 ```{r}
 shortest_paths(graph = net,from = "aiden7757",to = "_nickluna_")$vpath
@@ -212,7 +262,7 @@ So, the shortest path includes $5$ vertices names `aiden7757`, ` andyhashtagger`
 We are now interested to compute the **mean distance between nodes**, i.e., the mean length of the paths:
 
 ```{r}
-average.path.length(graph = net)
+mean_distance(graph = net)
 ```
 
 > `r emo::ji("star")` **Remember**: Average path length is a concept in network topology that is defined as the average number of steps along the shortest paths for all possible pairs of network nodes.
@@ -226,21 +276,30 @@ image(S,col = gray.colors(n = diameter(net)))
 #The diameter of a graph is the length of the longest geodesic.
 ```
 
-> `r emo::ji("star")` **Remember**: In addition to the *degree*, there are other local measures to assess the importance of a node within the network. The most important are 
 
-- *closeness*: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes:
+Many questions that might be asked about a vertex in a network graph essentially seek to understand its *importance* in the network. 
+
+Measures of centrality are designed to quantify such notions of *importance*. 
+
+There are a vast number of different centrality measures that have been proposed over the years. We have already encountered what is arguably the most widely used measure of vertex centrality: vertex degree. Here we will see:
+
+- **Closeness centrality**: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes. It measures attempt to capture the notion that a vertex is *central*
+if it is *close* to many other vertices.
 
 $$
-\dfrac{V-1}{\sum_{i \ne v} d_{vi}}
+C_{Cl}(v) = \dfrac{1}{\sum_{u \in V} \text{dist}(v, u)}
 $$
+where $\text{dist}(v,u)$ is the geodesic distance between the vertices $u$, $v \in V$. Often, for comparison across graphs and with other centrality measures, this measure is normalized to lie in the interval $[0,1]$, through multiplication by a factor $N_v−1$.
 
-- *betweenness*: analyze the number of geodesics (shortest paths) going through a vertex or an edge, i.e., how relevant is a node in terms of connecting other nodes in a graph:
+
+- **Betweenness centrality**: analyze the number of geodesics (shortest paths) going through a vertex or an edge, i.e., how relevant is a node in terms of connecting other nodes in a graph. It measures are aimed at summarizing the extent to which a vertex is located *between* other pairs of vertices. These centralities are based upon the perspective that *importance* relates to where a vertex is located with respect to the paths in the network graph. If we picture those paths as the routes by which, say, communication of some sort or another takes place, vertices that sit on many paths are likely more critical to the communication process.
 
 $$
-\dfrac{2\dfrac{\sum_{i \ne j}g_{ivj}}{g_{ij}}}{(V-1)(V-2)}
+C_{B}(v) = \sum_{s \ne t \ne v \in V} \dfrac{\sigma(s, t \mid v)}{\sigma(s,t)}
 $$
+where $\sigma(s, t \mid v)$ is the total number of shortest paths between $s$ and $t$ that pass through $v$, and $\sigma(s, t)$ is the total number of shortest paths between $s$ and $t$ (regardless of whether or not they pass through $v$).
 
-where $g_{ivj}$ is the total number of shortest paths between vertices $i$ and $j$ while $g_{ivj}$ is the number of those shortest paths which pass though vertex $v$. Normalized by the number of ordered or unordered vertex pairs.
+In the event that shortest paths are unique, $C_{B}(v)$ just counts the number of shortest paths going through $v$. This centrality measure can be restricted to the unit interval through division by a factor of $(N_v−1)(N_v−2)/2$.
 
 ```{r}
 C_net = igraph::closeness(graph = net, normalized = TRUE)
@@ -266,19 +325,32 @@ So, the account `ann_hanah` is the node closest to the other, while `jeromyjerom
 names(which.max(B_net))
 names(which.min(B_net))
 ```
+
 So, the account `matevidence` is the most relevant node in our graph in terms of connecting nodes, while `_anna_sanna_` the less one (gatekeepers of information).
+
+An intuitively appealing way of displaying vertex centralities (for networks of small to moderate size) is to use a radial layout, with more central vertices located closer to the center. The function `gplot.target`, in the package `sna`, can be used
+for this purpose. For example (DO NOT RUN),
+
+```{r, eval = FALSE}
+net.sub <- delete_vertices(net, vertex.attributes(net)$accounttype != "left")
+
+A <- as_adjacency_matrix(net.sub, sparse=FALSE)
+sna::gplot.target(A, sna::degree(A))
+```
+
+The visualizations of the other centralities measures are produced similarly, replacing the argument `degree(A)` by the arguments `closeness(g)`, `betweenness(g)`.
 
 It is possible that we have group of nodes disconnected, in order to see how our network is composed we can use the `components()` function:
 
 ```{r}
-subg = components(graph = net)
+subg = igraph::components(graph = net)
 subg$csize
 ```
 
-The network we are analysing has one very extensive component, consisting of $1149$ nodes, and several components consisting of very few nodes ($2$ or $4$). There is also a component formed by $35$ nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
+The network we are analyzing has one very extensive component, consisting of $1149$ nodes, and several components consisting of very few nodes ($2$ or $4$). There is also a component formed by $35$ nodes, which forms an isolated group and which may be interesting to analyse at a later date. For the moment, we focus only on the largest component, excluding the other nodes from the analysis. We recalculate the statistics mentioned above and evaluate which nodes are associated with higher values.
 
 ```{r}
-net = igraph::delete.vertices(net, which(subg$membership != 1))
+net = igraph::delete_vertices(net, which(subg$membership != 1))
 C_net = igraph::closeness(graph = net,normalized = T)
 B_net = igraph::betweenness(graph = net,normalized = T)
 D_net = igraph::degree(net,normalized = T)
@@ -289,6 +361,7 @@ sort(C_net,decreasing = T)[1:5]
 sort(D_net,decreasing = T)[1:5]
 sort(B_net,decreasing = T)[1:5]
 ```
+
 > What happened?
 
 So, let's see now the distribution of the closeness and betweeness measure:
@@ -331,7 +404,128 @@ If there is a strong positive correlation between **degree** and **closeness**: 
 
 If there is a strong positive correlation between **betweennes** and **closeness**: Nodes that are well positioned to carry out a rapid transfer of information within the graph (high closeness centrality) are also those that play a crucial role in controlling communications between different nodes (high betweenness centrality).
 
-# Network and group
+# Edges characteristics
+
+All of the summary measures discussed so far (i.e., degree and other, more general, notions of centrality) are for vertices, as it seems to be most common in practice that questions of importance are in regard to the vertices of a graph. But some questions are more naturally associated with edges.
+
+We might ask which ties in the network are most important for the spread of, say, information or rumors. Edge betweenness centrality—which extends vertex betweenness centrality in a straightforward manner, by assigning to each edge a value that reflects the number of shortest paths traversing that edge—is a natural quantity to use here.
+
+```{r}
+eb <- edge.betweenness(net)
+E(net)[order(eb, decreasing=T)[1:3]]
+```
+The account matevidence plays a key role in facilitating the direct flow of information between lil_game_vip and ndr_bolozyb.
+
+However, many other vertex centrality measures do not extend as easily. See Chap. 3 of the edited volume of [Brandes and Erlebach](https://link.springer.com/book/10.1007/b106453) for a brief discussion.
+
+
+
+# Network cohesion
+
+A great many questions in network analysis boil down to questions involving network cohesion, the extent to which subsets of vertices are cohesive—or *stuck together*—with respect to the relation defining edges in the network graph.
+
+There are many ways that we can define **network cohesion**, depending on the context of the question being asked. Definitions differ, for example, in scale, ranging from local (e.g., triads) to global (e.g., giant components), and also in the extent to which they are specified explicitly (e.g., cliques) versus implicitly (e.g., ‘clusters’ or ‘communities’). 
+
+
+One approach to defining network cohesion is through specification of a certain subgraph(s) of interest. The canonical example of such a subgraph is that of a clique.
+Recall that cliques are complete subgraphs and hence are subsets of vertices that are fully cohesive, in the sense that all vertices within the subset are connected by edges.
+
+A census of cliques of all sizes can provide some sense of a ‘snapshot’ of how structured a graph is.
+
+```{r}
+table(sapply(cliques(net), length))
+```
+We have 1149 nodes (cliques of size 1), 2587 edges (cliques of size two) and 1588 triangles (cliques of size 3). The largest cliques are of size 6, of which there are 21
+
+```{r}
+cliques(net)[sapply(cliques(net), length) == 6][[1]]
+cliques(net)[sapply(cliques(net), length) == 6][[2]]
+cliques(net)[sapply(cliques(net), length) == 6][[3]]
+```
+Considering the first three cliques of size 6, we can note that they shared several nodes.
+
+Note that there is some redundancy here, in that the cliques of larger sizes necessarily include cliques of smaller sizes. 
+
+A **maximal** clique is a clique that is not a subset of a larger clique.
+
+```{r}
+table(sapply(maximal.cliques(net), length))
+```
+With
+
+```{r}
+clique.number(net)
+```
+you can see the size of the largest clique.
+
+We can also compute a $k$-core, i.e., a subgraph of $G$ for which all vertex degrees are at least $k$, and such that no other subgraph obeying the same condition contains it (i.e., it is maximal in this property).
+
+```{r}
+cores <- coreness(net)
+hist(cores)
+```
+
+The characterizations of network cohesion described so far proceed by first stating a pre-specified notion of substructure and then looking to see whether it occurs in a graph $G$ and, if so, where and how often. More generally, the related concept of relative frequency can be applied in various useful ways.
+
+The density of a graph is the frequency of realized edges relative to potential edges. In a undirected graph $G$ with no self-loops and no multiple edges, the density of a subgraph $H = (V_H, G_H)$ is:
+
+$$
+\text{den}(H) = \dfrac{\mid E_H \mid}{\mid V_H \mid (\mid V_H \mid -1)/2}
+$$
+The value of $\text{den}(H)$ will lie between zero and one and provides a measure of how close $H$ is to being a clique.
+
+Taking $H=G$:
+
+```{r}
+graph.density(net)
+```
+Taking $H=H_v$ to be the set of neighbors of a vertex $v \in V$, and the edges between them:
+
+```{r}
+sub.net <- induced.subgraph(net, igraph::neighborhood(net, 1, which(V(net)$accounttype == "left"))[[2]])
+graph.density(sub.net)
+```
+```{r}
+sub.net <- induced.subgraph(net, igraph::neighborhood(net, 1, which(V(net)$accounttype == "right"))[[1]])
+graph.density(sub.net)
+```
+
+Another measure is the **transitivity** which is a measure of global clustering, summarizing the relative frequency with which connected triples close to form triangles:
+
+$$
+\text{cl}_T(G) = \dfrac{3 \tau_{\Delta} (G)}{\tau_3 (G)}
+$$
+where $\tau_{\Delta} (G)$ is the number of trinagles in the graph $G$, and $\tau_3 (G)$ is the number of connected triples (i.e., a subgraph of three vertices connected by two edges).
+
+```{r}
+transitivity(net)
+```
+
+So about $0.05$ of the connected triples close in this manner. 
+
+The local analogue of this measure can also be of interest. Let $\tau_{\Delta}(v)$ denote the number of triangles in $G$ into which $v \in V$ falls, and $\tau_3(v)$ the number of connected triples in $G$ for which the two edges are both incident to $v$.
+
+$$
+\text{cl}(v) = \dfrac{\tau_{\Delta}(v)}{\tau_3(v)}
+$$
+```{r}
+transitivity(net, "local", vids = which(V(net)$accounttype == "left")[2])
+```
+
+# Graph Partitioning
+
+Partitioning refers to the segmentation of a set of elements into *natural* subsets. 
+
+In the analysis of network graphs, partitioning is a useful tool for finding, in an unsupervised fashion, subsets of vertices that demonstrate a *cohesiveness* with respect to the underlying relational patterns
+
+This problem of graph partitioning is also commonly referred to as **community detection** in the complex networks literature.
+
+A *cohesive* subset of vertices generally is taken to refer to a subset of vertices that
+
+(i) are well connected among themselves, and at the same time
+(ii) are relatively well separated from the remaining vertices.
+
+Graph partitioning algorithms typically seek a partition $\mathcal{C} = \{C_1, \dots, C_K\}$ of the vertex set $V$ of a graph $G = (V,E)$ in such a manner that the sets $E(C_k, C_{k^\prime})$ of edges connecting vertices in $C_k$ to vertices in $C_{k^\prime}$ are relatively small in size compared to the sets $E(C_k) = E(C_k, C_K)$ of edges connecting vertices within the $C_k$.
 
 The Russian troll network is clearly characterized by different groups. Of particular interest is, for instance, the type of account (i.e., `accounttype` variable), which is divided into several macro-categories. There is also a less fine division, i.e., the `accountcategory` variable.
 
@@ -389,7 +583,6 @@ The division actually leads to very high values of *assortativity*, confirming a
 
 This result confirms that trolls tend to interact more with others belonging to the same political sphere or sphere of interest, creating many connections between profiles that are similar to them and few with those that are different.
 
-# Subgroups and communities
 
 **Can we do better?** 
 
@@ -407,10 +600,12 @@ We try to obtain a more interesting partition by estimating the groups on the ba
 
 Here, we will apply the first one, the Louvain method, we will not go into details, but it find community (subgraphs) optimazing the modularity measure.
 
+Large values of the modularity are therefore taken to suggest that $\mathcal{C}$ captures nontrivial ‘group’ structure, beyond that expected to occur under the random assignment of edges.
+
 
 ```{r}
 gr = cluster_louvain(graph = net)
-#gr2 = cluster_fast_greedy(graph = net)
+#gr2 = cluster_fast_greedy(graph = net) #agglomerative hierarchical clustering algorithm
 ```
 
 Note that the `cluster_louvain(x)` function as other `cluster_` function of the package `igraph` returns and object of class `communities`:
@@ -430,13 +625,21 @@ table(membership(gr))
 assortativity(net,membership(gr))
 ```
 
-The method identifies $K=11$ communities (too many?), and produces a partition with very high *modularity*:
+The method identifies $K=9$ communities (too many?), and produces a partition with very high *modularity*:
 
 ```{r}
 modularity(gr)
 ```
 
 So, summing up  `modularity(x)` can take as input the graph with the membership vector of the community structure or directly the `community` objects.
+
+```{r}
+net1 <- net
+vertex_attr(net1)$name  <- NULL
+gr1 = cluster_louvain(graph = net1)
+plot(gr1, net1,col = NULL)
+```
+
 
 > **_Question:_** _What is the relationship between the groups identified by the *Louvain* method and those referred to the sphere of influence, i.e., the `aType` variable?_ 
 
