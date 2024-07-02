@@ -30,37 +30,41 @@ knitr::opts_chunk$set(echo = T, fig.align = "center", out.width = '80%', warning
 
 # Introduction
 
-Here, we will see how to apply some **Exponential Random Graph Model** (ERGM) which are designed in direct analogy to the classical Generalized Linear Models (GLMs).
+Here, we will see how to apply some **Exponential Random Graph Models** (ERGM) which are designed in direct analogy to the classical Generalized Linear Models (GLMs).
 
-Other famous models (see Statistical Analysis of Network Data with R, Kolaczyk et al. Chapter 6):
+Other famous models:
 
 - **Stochastic block models** draws their inspiration from mixture models. 
 
 - **Latent network models** are a network-based variant of the common
 practice of using both observed and unobserved (i.e., latent) variables in modeling an outcome (i.e., in this case, the presence or absence of network edges).
 
+see "Statistical Analysis of Network Data with R" by Kolaczyk, E. D., and Csárdi, G. (2014) (Chapter 6).
 
 # Exponential Random Graph Models
 
 The goal of ERGMs is to *describe parsimoniously the local selection forces that shape the global structure of a network* ([Hunter et al. 2008](https://www.tandfonline.com/doi/abs/10.1198/016214507000000446)).
 
-ERGMs are analogous to logistic regression: they predict the probability that a pair of nodes in a network will have a tie between them, but they have some important differences from standard regression methods, e.g., observations (nodes and edges) are interdependent.
+ERGMs are analogous to logistic regression: they predict the **probability that a pair of nodes in a network will have a tie between them**, but they have some important differences from standard regression methods, e.g., observations (nodes and edges) are **interdependent**.
 
-Let $Y_{ij} = Y_{ji}$  be a binary random variable indicating the presence or absence of an edge $e \in E$ between the two vertices $i$ and $j$ in $V$. The matrix $\mathbf{Y} = [Y_{ij}]$ is simply the (random) adjacency matrix for $G$.
+Let $Y_{ij} = Y_{ji}$  be a binary random variable indicating the presence or absence of an edge $e \in E$ between the two vertices $i$ and $j$ in $V$. 
+
+The matrix $\mathbf{Y} = [Y_{ij}]$ is simply the (random) adjacency matrix for $G$.
 
 $$
-\Pr_{\theta, \mathcal{Y}} (\mathbf{Y} = \mathbf{y} \mid \theta) = \dfrac{1}{k (\theta, \mathcal{Y})} \exp\Big\{\theta^\top g(\mathbf{y}, \mathbf{X})   \Big\}
+\Pr(\mathbf{Y} = \mathbf{y} \mid \theta, \mathcal{Y}) = \dfrac{1}{k (\theta, \mathcal{Y})} \exp\Big\{\theta^\top g(\mathbf{y}, \mathbf{X})   \Big\}
 $$
 
 where 
 
-- $\theta$ is a vector of coefficients, 
+- $\theta$ is a vector of **coefficients**, 
 
-- $g(\mathbf{y}, \mathbf{X})$ is a vector of sufficient statistics, 
+- $g(\mathbf{y}, \mathbf{X})$ is a vector of **sufficient statistics**, 
+- $\mathcal{Y}$ is the **space of possible graphs**, and 
 
-- $\mathcal{Y}$ is the space of possible graphs, and 
+- $k(\theta, \mathcal{Y})$ is a **normalizing constant**. 
 
-- $k (\theta, \mathcal{Y})$ is a normalizing constant. That is, it’s the numerator summed across all possible graphs $\mathcal{Y}$. For even moderate-sized graphs, $k(\theta, \mathcal{Y})$ can be enormous, so closed-form solutions are unfeasible. The number of labeled, undirected graphs of $n$ vertices is $2^{n(n-1)/2}$, which can get big fast. 
+$k(\theta, \mathcal{Y})$ is the numerator summed across all possible graphs $\mathcal{Y}$. For even moderate-sized graphs, $k(\theta, \mathcal{Y})$ can be enormous, so closed-form solutions are unfeasible. The number of labeled, undirected graphs of $V_n$ vertices is $2^{V_n(V_n-1)/2}$, which can get big fast. 
 
 The basic assumption of these models is that the structure in an observed graph $\mathbf{y}$ can be explained by a given vector of sufficient statistics $g(\mathbf{y})$ which are a function of the observed network and, in some cases, nodal attributes, i.e., $g(\mathbf{y}, \mathbf{X})$.
 
@@ -69,7 +73,7 @@ To fit an ERGM, we use the `ergm` package, which is part of the `statnet` suite 
 ```{r}
 rm(list = ls())
 library(statnet)
-library(sand) #to load the data
+library(sand) #to load the lazega data
 library(ergm)
 data(lazega)
 ```
@@ -82,9 +86,10 @@ lazega.ergm <- asNetwork(lazega)
 lazega.ergm
 ```
 
-The `lazega` dataset shows the collaborative working relationships among members of a New England law firm. These data were collected for the purpose of studying cooperation among social actors in an organization, through the exchange of various types of resources among them. The organization observed was a law firm, consisting of over 70 lawyers (roughly half partners and the other half associates) in three offices located in three different cities. Relational data reflecting resource exchange were collected, and additional attribute information was recorded for each lawyer, including type of practice, gender, and seniority.
+The `lazega` dataset shows the **collaborative working relationships among members of a New England law firm**. These data were collected for the purpose of **studying cooperation among social actors in an organization**, through the exchange of various types of resources among them. The organization observed was a law firm, consisting of over $70$ lawyers (roughly half partners and the other half associates) in three offices located in three different cities. Relational data reflecting resource exchange were collected, and additional attribute information was recorded for each lawyer, including type of practice, gender, and seniority.
 
-- `Status`: all 1, meaning partner
+Here, we have a subset of the original data, where only the partner are analyzed, i.e., with the same `Seniority` and `Status` covariates values:
+
 - `Gender`: 1 is man, 2 is woman
 - `Office`: 1 is Boston, 2 is Hartford, 3 is Providence
 - `Years`: years with the firm
@@ -93,6 +98,12 @@ The `lazega` dataset shows the collaborative working relationships among members
 - `School`: 1 is Harvard or Yale, 2 is University of Connecticut, 3 other
 
 Let look at the dataset:
+
+```{r}
+v.names <- vertex_attr_names(lazega)
+sapply(v.names, function(x) table(vertex_attr(lazega, x)))
+```
+So, let make a first plot, where the size of the nodes is proportional to the `Years` values covariates:
 
 ```{r}
 years <- lazega.ergm %v% 'Years' 
@@ -106,7 +117,7 @@ plot(lazega.ergm,
 ```
 
 
-With our data ready for analysis using `statnet`, let’s build our first ERGM. There are a number of potential ERG model terms that we could use in fitting our model. You can view a full list by looking at the documentation for:
+With our data ready for analysis using `statnet`, let’s build our first ERGM. There are a number of potential ERGM terms that we could use in fitting our model. You can view a full list by looking at the documentation for:
 
 ```{r, eval = FALSE}
 ?ergm.terms
@@ -116,31 +127,59 @@ With our data ready for analysis using `statnet`, let’s build our first ERGM. 
 
 We begin with the simplest possible model: one that assumes **every tie is equally likely**. 
 
-The model then contains only one term that represents the total number of edges in the network, $\sum y_{ij} = N_e$. The name of this `ergm-term` is `edges`, and when included in an ERGM its coefficient controls the overall density of the network. It is a statistic which counts how many edges there are in the network.
+This ERGM contains only one term that represents the total number of edges in the network, $\sum y_{ij} = N_e$. 
+
+The name of this `ergm-term` is `edges`, and when included in an ERGM **its coefficient controls the overall density of the network**. It is a statistic which counts how many edges there are in the network.
 
 The ERGM model is then:
 
 $$
-\Pr_{\theta, \mathcal{Y}} (\mathbf{Y} = \mathbf{y} \mid \theta) = \dfrac{1}{k (\theta, \mathcal{Y})} \exp\Big\{\theta \sum y_{i,j}   \Big\}
+\Pr (\mathbf{Y} = \mathbf{y} \mid \theta, \mathcal{Y}) = \dfrac{1}{k (\theta, \mathcal{Y})} \exp\Big\{\theta \sum y_{ij}   \Big\}
 $$
-assuming $\theta_{i j}$ equal to some common value $\theta$ (typically referred to as an assumption of *homogeneity* across the network),
+assuming $\theta_{i j}$ equal to some common value $\theta$ (typically referred to as an assumption of **homogeneity** across the network),
 
-> The result is equivalent to a Bernoulli random graph model, with $p = \exp(\theta)/[1+\exp(\theta)]$.
+The result is equivalent to a Bernoulli random graph model, with probability of success equals $ \exp(\theta)/[1+\exp(\theta)]$.
 
-```{r}
-summary(lazega.ergm ~ edges) # Calculate the edges statistic for this network
-```
-
+We can compute the edge statistic for this network:
 
 ```{r}
-random_graph <- ergm(lazega.ergm ~ edges, control = control.ergm(seed = 1234))
+summary(lazega.ergm ~ edges) 
+```
+and then we estimate the ERGM model as:
+
+```{r}
+random_graph <- ergm(lazega.ergm ~ edges)
 ```
 
-You’ll notice that this model fits very quickly, and yields the same result every time you run it. This is because this model contains no dependency terms, meaning terms that model how the probability of a tie between two nodes is affected by existing ties in the network. In models without dependency terms, the ERGM solution can be approximated without simulation, using MPLE (maximum pseudo-likelihood estimator). This is basically fitting a logistic regression to our network ties. 
+This model fits very **quickly**, and we have the same result every time we run it.
+
+This is because this model contains **no dependency terms**, i.e., terms that model how the probability of a tie between two nodes is affected by **existing ties** in the network. 
+
+In models without dependency terms, the ERGM solution can be approximated without simulation, using MPLE (maximum pseudo-likelihood estimator). This is basically fitting a logistic regression to our network ties. 
 
 **How do we interpret this coefficient?** 
 
-Coefficients in ERGMs represent the change in the (log-odds) likelihood of a tie for a unit change in a predictor. We can use a simple formula for converting log-odds to probability to understand them better
+Coefficients in ERGMs represent the change in the (log-odds) likelihood of an edge being present between two actors, holding the rest of the network fixed for a unit change in a predictor, i.e.,
+
+$$
+\text{logit}(\Pr(Y_{ij} = 1 \mid \mathbf{y}_{-(ij)})) = -1.4992 \,\, \delta(y_{ij})
+$$
+
+where $\delta(y_{ij})$ is a vector of the **change statistics** for each model term. The change statistic records how the $g(\mathbf{y})$ term changes having $y_{ij}=1$ and $y_{ij}=0$.
+
+> `r emo::ji("boom")` How much is $\delta(y_{ij})$ having only `edges` as `ergm-terms`?
+
+As in `lm` and `glm`, we can extract the estimated coefficient with:
+
+```{r}
+theta <- coef(random_graph)
+theta
+```
+
+> `r emo::ji("boom")` so?
+
+We can interpret directly in terms of probability instead of log-odds:
+
 
 ```{r}
 inv.logit <- function(logit){
@@ -149,17 +188,15 @@ inv.logit <- function(logit){
   return(prob)
 }
 
-theta <- coef(random_graph)
 inv.logit(theta)
 ```
-This simple model specifies a single homogeneous probability for all ties, which is captured by the coefficient of the `edges` term.
 
-So the probability of an edge being in the graph is roughly $0.18$. The probability of an edge being drawn should in theory be the same as density - let’s check.
+
+So the probability of an edge being in the graph is roughly $0.18$. The probability of an edge being drawn should in theory be the same as **density** - let’s check.
 
 ```{r}
 network.density(lazega.ergm)
 ```
-
 
 We can more closely examine the model fit using the `summary()` function, just like `lm()` or `glm()` in base R.
 
@@ -167,15 +204,6 @@ We can more closely examine the model fit using the `summary()` function, just l
 ```{r}
 summary(random_graph)
 ```
-
-The logit-scale conditional probability (log-odds) of an edge being present between two actors, holding the rest of the network fixed, is
-
-$$
-\text{logit}(\Pr(Y_{ij} = 1 \mid \mathbf{y}_{-(ij)})) = -1.4992 \,\, \delta(y_{ij})
-$$
-where $\delta(y_{ij})$ is a vector of the *change statistics* for each model term. The change statistic records how the $g(\mathbf{y})$ term changes if the $y_{ij}$ tie is toggled on or off $\rightarrow$ $\delta(y_{ij}) = 1$.
-
-
 
 We can also simulate graphs using our ERGM fit. 
 
@@ -189,7 +217,6 @@ hundred_simulations <- simulate(random_graph,
 ```
 
 Let’s examine the first three simulations.
-
 
 ```{r}
 par(mfrow = c(1, 3))
@@ -206,16 +233,26 @@ abline(v = network.density(lazega.ergm), col = "red", lwd = 3, lty = 2)
 abline(v = mean(net_densities), col = "blue", lwd = 3, lty = 1)
 ```
 
-Another way to evaluate our model is to use the built-in goodness of fit measures. Essentially, we will evaluate whether our network has similar structural features as the simulated graphs. `ergm` has a built-in function - `gof()` - which calculates the statistics for us. We just have to tell it how many simulations we want to use in the comparison set - the larger the number, the more accurate representation of the model.
+For ERGMs, the current practice in assessing goodness-of-fit is to first **simulate numerous random graphs from the fitted model** and then compare high-level **characteristics** of these graphs, i.e.,:
+
+- degree
+- edge-wise shared partners (i.e., the number of neighbors shared by a pair of vertices defining an edge)
+- geodesic distance
+
+with those of the originally observed graph. 
+
+If the characteristics of the observed network graph are too poor of a match to the typical values arising from realizations of the fitted random graph model, then this suggests systematic differences between the specified class of models and the data, and therefore a lack of goodness-of-fit.
+
+To assess the goodness-of-fit of our model, as fit by ergm, the function `gof` in `ergm` runs the necessary Monte Carlo simulation and calculates these comparisons:
 
 ```{r}
 gof_stats <- gof(random_graph,coef = theta)
 
-par(mfrow = c(2, 3))
+par(mfrow = c(2, 2))
 plot(gof_stats, main = '')
 ```
 
-> Two nodes $i$ and $j$ have an edgewise shared partner when they are connected to each other and both $i$ and $j$ are also connected to a third individual $k$. If $i$ and $j$ were also connected to node $l$, then $i$ and $j$ would have two edgewise shared partners. In other words, when nodes have edgewise shared partnerships, they form triangles!
+> `r emo::ji("boom")` What do you think?
 
 How to we improve our fit? By adding more terms to the model!
 
@@ -223,83 +260,89 @@ How to we improve our fit? By adding more terms to the model!
 
 It is of interest to incorporate higher order statistics associated with the overall structure of the network, such as the number of $k$-stars ($k+1$ vertices and $k$ edges) $S_k(\mathbf{y})$ (`kstar`) and the number of (3-clique) triangles $T(\mathbf{y})$ (`triangle`).
 
-Triangles measure transitivity and clustering in networks. We can add a triangle term to our ergm. Unlike the edges-only model, this model will need to be estimated via MCMC.
+Triangles measure **transitivity** and **clustering** in networks. We can add a triangle term to our `ergm`. Unlike the edges-only model, this model will need to be estimated via MCMC, deriving from the fundamental work of [Geyer and Thompson](https://academic.oup.com/jrsssb/article-abstract/54/3/657/7035848?redirectedFrom=fulltext&login=false). See [Hunter and Handcock](https://www.tandfonline.com/doi/abs/10.1198/106186006X133069), for example, for additional details and references.
 
+So, let look at the $g(\mathbf{y})$ stats for this model
 
 ```{r}
-summary(lazega.ergm~edges+triangle) # Look at the g(y) stats for this model
+summary(lazega.ergm~edges+triangle) # 
 ```
+
+and the we fit the model
 
 ```{r, eval = FALSE}
 tr_graph <- ergm(lazega.ergm ~ edges + triangles)
 ```
 
-You will notice that as we move from the edges-only model to the edges-plus-triangles, the estimation method changes. Triangles are a dyad-dependent term and the ergm must be fit using MCMC simulation. Depending on the size of your network, this might take a while. Whenever ergm fits a model via MCMC, you will get a warning telling you to check for degeneracy and model diagnostics. If the model shows clear signs of degeneracy, you will receive a warning (but don’t assume that if you don’t get a warning that the model is fine; always check the MCMC diagnostics and the model goodness-of-fit).
+Whenever `ergm` fits a model via MCMC, you will get a warning telling you to check for **degeneracy** and model diagnostics. 
 
-In general, triangles cause problems in ergms. They often lead to a phenomenon known as degeneracy. While our intuition tells us that triangles should matter for networks – because triangles result from transitivity – it turns out that there are better ways to represent transitivity in network models.
+In general, triangles cause problems in ERGMs, i.e., degeneracy. While our intuition tells us that triangles should matter for networks – because triangles result from transitivity – it turns out that there are **better ways** to represent transitivity in network models.
 
-A series of papers by Katie Faust (2007, 2008, 2010) shows that triadic structures are highly constrained by lower-level structures, namely, edge density. In the limited-choice paradigm employed by Ad Health (i.e., “name your five best female/male friends”), Faust (2010) found that the triad census in 128 networks was almost perfectly explained by one dimension of a multivariate analysis (conceptually similar to the loading on a principal component) and that edge density accounted for 96% of the variance in locations along this dimension!
+Triadic structures are highly constrained by the number of edges and the size of the network, which jointly determine the network density. This situation of extreme constraint causes the MCMC algorithm by which ergms are estimated to behave badly, leading to the condition of degeneracy discussed above. 
 
-This result was extreme – and determined in large part by the analysis of restricted-choice questions for a single relation – but the point remains: the number (and pattern) of triads in a network will be highly constrained by the number of edges and the size of the network, which jointly determine the network density. Mark Handcock (2003) showed that this situation of extreme constraint causes the MCMC algorithm by which ergms are estimated to behave badly, leading to the condition of degeneracy discussed above. 
-
-A network model is degenerate when the space that an MCMC sampler can explore is so constrained that the only way to get the observed  is essentially to flicker between full and empty graphs in the right proportion. Not what you want out of an MCMC estimator. A good indication that you have a degenerate model is that you have NA values for standard errors on your ergm parameter estimates. You can’t calculate a variance – and, therefore, a standard error – if you simply flicker between full and empty graphs.
+A network model is degenerate when the space that an MCMC sampler can explore is so constrained that the only way to get the observed is essentially to flicker between full and empty graphs in the right proportion. Not what you want out of an MCMC estimator. A good indication that you have a degenerate model is that you have `NA` values for standard errors on your ergm parameter estimates. You can’t calculate a variance – and, therefore, a standard error – if you simply flicker between full and empty graphs.
 
 ## Nodal Covariates
 
-It is natural to expect that the chance of an edge joining two vertices depends not only on the status (i.e., presence or absence) of edges between other vertex pairs, but also on attributes of the vertices themselves (i.e., allowing for assessment of exogenous effects). 
-
-The plausibility of an edge joining two vertices depends not only on the state (0 or 1) of the edges between other pairs of vertices, but also on the attributes of the vertices (exogenous variables).
+It is natural to expect that the chance of an edge joining two vertices depends not only on the status (i.e., presence or absence) of edges between other vertex pairs, but also on **attributes** of the vertices themselves (i.e., allowing for assessment of exogenous effects). 
 
 The vertex attributes can be included in the formulation of an ERGM by means of
 
 $$
 g(\mathbf{x}, \mathbf{y}) = \sum_{i < j} y_{ij}h(\mathbf{x}_i, \mathbf{x}_j)
 $$
+
 where $h(\cdot)$ is a symmetric function, and $\mathbf{x}_i$ is the observed vector of node $i$ attributes.
+
+So, we can express two effects:
 
 - **Main effect**: `nodecov`, $h(x_i, x_j) = x_i + x_j$
 
-- **Second order effect**, homophily (i.e., the tendency of similar individuals to associate with each other): `nodematch`, $h(x_i, x_j) = \mid x_i + x_j \mid$
+- **Second order effect**, homophily (i.e., the tendency of similar individuals to associate with each other): `nodematch`, $h(x_i, x_j) = \mid x_i + x_j \mid$.
 
-- 
+So, here we want an ERGM with:
+
+- Main effect for `Practice`, i.e., the type of practice can influence the formation of ties
+
+- Second order effect for `Practice`, `Gender`, and `Office`, i.e, individuals with similar values of these attributes tends to form links with each other.
+
+- and a transitivity measure, i.e., the **Geometrically Weighted Edgewise Shared Partner** (GWESP). It is a measure of the tendency of nodes to form triangles, that is, to share common partners.
+
+
+As before, let compute the observed stats:
 
 ```{r}
 summary(lazega.ergm ~ edges + gwesp(log(3), fixed=TRUE)
- + nodecov("Seniority")
  + nodecov("Practice")
  + nodematch("Practice")
  + nodematch("Gender")
  + nodematch("Office"))
 ```
 
-- `gwesp(log(3), fixed=TRUE)`: This term represents the "Geometrically Weighted Edgewise Shared Partner" (GWESP). It is a measure of the tendency of nodes to form triangles, that is, to share common partners. The argument $\log(3)$ is a decay value that controls how quickly the effect of shared partners decreases as the number of such partners increases. The `fixed=TRUE` argument indicates that the decay parameter is fixed at the specified value, rather than being estimated from the data.
 
-- `nodecov("x")`: This term includes a main effect for the `x` attribute of nodes. It means that the model takes into account the `x` value of nodes as an individual attribute that can influence the formation of ties.
+In `gwesp(log(3), fixed=TRUE)`, the argument $\log(3)$ is a decay value that controls how quickly the effect of shared partners decreases as the number of such partners increases. The `fixed=TRUE` argument indicates that the decay parameter is fixed at the specified value, rather than being estimated from the data.
 
-- `nodematch("x")`: This term includes a matching effect (homophily) for the `x` attribute. It means that the model considers the tendency of nodes with the same `x` to form links with each other.
-
+So, let fit the model:
 
 ```{r}
 lazega.ergm.fit <- ergm(lazega.ergm ~ edges + gwesp(log(3), fixed=TRUE)
- + nodecov("Seniority")
  + nodecov("Practice")
  + nodematch("Practice")
  + nodematch("Gender")
  + nodematch("Office"))
-summary(lazega.ergm.fit)
 ```
 
 
-This specification allows us to control for the density of the network and some effects of **transitivity**. In addition, it allows us to assess the effect on the formation of collaborative ties among lawyers that is had by seniority, the type of practice (i.e., corporate or litigation), and commonality of practice, gender, and office location.
-
-In `ergm`, models are fit using the function ergm, which implements a version of Markov chain Monte Carlo maximum likelihood estimation, deriving from the fundamental work of [Geyer and Thompson](https://academic.oup.com/jrsssb/article-abstract/54/3/657/7035848?redirectedFrom=fulltext&login=false). See [Hunter and Handcock](https://www.tandfonline.com/doi/abs/10.1198/106186006X133069), for example, for additional details and references.
+So, this specification allows us to control for the density of the network and some effects of **transitivity**. In addition, it allows us to assess the effect on the formation of collaborative ties among lawyers that is had by the type of practice (i.e., corporate or litigation), and commonality of practice, gender, and office location.
 
 
-The analogy between ERGMs and GLMs may be drawn upon in summarizing and assessing the fit of the former. For example, examination of an analysis of variance (ANOVA) table indicates that there is strong evidence that the variables used in the model explain the variation in network connectivity to a highly nontrivial extent, with a change in deviance of 414 with only seven variables.
+We can also use the `anova` function:
 
 ```{r}
 anova(lazega.ergm.fit)
 ```
+
+there is strong evidence that the variables used in the model explain the variation in network connectivity to a highly nontrivial extent, with a change in deviance of $414$ with only six variables.
 
 As before, we can examine the relative contribution of the individual variables in our model.
 
@@ -308,7 +351,7 @@ summary(lazega.ergm.fit)
 ```
 
 
-In order to interpret the coefficients, it is useful to think in terms of the probability of a given vertex pair having an edge, conditional on the edge status between all other pairs. 
+Again, in order to interpret the coefficients, it is useful to think in terms of the probability of a given vertex pair having an edge, conditional on the edge status between all other pairs. 
 
 Writing $\mathbf{Y}_{(−i j)}$ to be all of the elements of $\mathbf{Y}$ except $Y_{i j}$, the distribution of $Y_{i j}$ conditional on $\mathbf{Y}_{(-i j)}$ is Bernoulli and satisfies the expression:
 
@@ -318,30 +361,28 @@ $$
 
 where $\Delta_{ij}(\mathbf{y})$ is the *change statistic*, denoting the difference between $\mathbf{g}(\mathbf{y})$ when $y_{i j} = 1$ and when $y_{i j} = 0$. 
 
-So the estimated coefficient of each attribute statistic in this analysis may be interpreted as a conditional log-odds ratio for cooperation between lawyers. 
 
-For example, practicing corporate law, rather than litigation, increases the odds of cooperation by a factor of $\exp(0.3926) \approx 1.48$. 
+For example, practicing corporate law, rather than litigation, increases the odds of cooperation by a factor of $\exp(0.259) \approx 1.3$. 
 
-Similarly, being of the same gender more than doubles the odds of cooperation, since $\exp(0.7197)\approx 2.0538$.
+Similarly, being from the same office more than doubles the odds of cooperation, since $\exp(0.9)\approx 2.46$.
 
-In all cases, such statements hold in the sense of *all else being equal* (i.e., given no change among values of the other statistics). 
+Since the `gwesp` coefficient is positive (and strongly significant) we can say there is a positive tendency towards **triadic closure**. Thus, the more shared partners between two nodes, the more likely those nodes are to be connected.
+
+In all cases, such statements hold in the sense of **all else being equal** (i.e., given no change among values of the other statistics). 
 
 
-Similarly, in terms of network structure, the magnitude of the coefficient $ \approx 0.5921$ for the alternating k-triangle statistic and the comparatively small corresponding standard error indicate that there is also evidence for a nontrivial transitivity effect. Note that, given the inclusion of our second-order attribute statistics in the model, our quantification of this effect naturally controls for basic homophily on these attributes. So there is likely something other than similarity of gender, practice, and office at work here—possibly additional attributes we have not controlled for, or possibly social processes of team formation.
-
-In any sort of modeling problem, the best fit chosen from among a class of models need not necessarily be a good fit to the data if the model class itself does not contain a sufficiently rich set of models from which to choose. The concept of model goodness-of-fit is therefore important. But, while this concept is fairly well developed in standard modeling contexts, such as linear modeling, it is arguably still in its infancy as far as network graph modeling is concerned.
-
-For ERGMs, the current practice in assessing goodness-of-fit is to first simulate numerous random graphs from the fitted model and then compare high-level characteristics of these graphs with those of the originally observed graph. Examples of such characteristics include the distribution of any number of the various summaries of network structure, such as degree, centrality, and geodesic distance. If the characteristics of the observed network graph are too poor of a match to the typical values arising from realizations of the fitted random graph model, then this suggests systematic differences between the specified class of models and the data, and therefore a lack of goodness-of-fit.
-
-To assess the goodness-of-fit of our model, as fit by ergm, the function `gof` in `ergm` runs the necessary Monte Carlo simulation and calculates comparisons with the original network graph in terms of the distribution of degree, geodesic length, and edge-wise shared partners (i.e., the number of neighbors shared by a pair of vertices defining an edge).
+Finally, we must check the goodness of fit of the model:
 
 ```{r}
 gof.lazega.ergm <- gof(lazega.ergm.fit)
-par(mfrow=c(1, 3))
+par(mfrow=c(2, 2))
 plot(gof.lazega.ergm)
 ```
 
-They indicate that—on these particular characteristics—the fit of the model is quite good overall.
 
 
+# References
 
+Krivitsky PN, Hunter DR, Morris M, and Klumb C (2023). "ergm 4: New Features for Analyzing Exponential-Family Random Graph Models." _Journal of Statistical Software_, *105*(6), 1-44. doi:10.18637/jss.v105.i06
+
+Kolaczyk, E. D., and Csárdi, G. (2014). Statistical analysis of network data with R (Vol. 65). New York: Springer.

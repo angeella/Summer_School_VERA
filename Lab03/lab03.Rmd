@@ -32,8 +32,6 @@ rm(list = ls())
 
 # Introduction
 
-The material is based on [Ognyanova, K. (2021) Network visualization with R](https://kateto.net/network-visualization). Special thanks also to Emanuele Aliverti for sharing part of this material. 
-
 In this tutorial, we will see how to represent graphically our network, plotting also the attributes related to the nodes and edges.
 
 First of all, you must load the `.RData` created in the previous tutorial:
@@ -244,23 +242,7 @@ plot(net,
 
 Sometimes we want to focus the visualization on a particular **node** or a group of nodes.
 
-The `distances` function returns a matrix of shortest paths from nodes listed in the `v` parameter to ones included in the `to` parameter.
-
-```{r}
-dist.from.Left <- igraph::distances(net, v=V(net)[aType=="Left"], to=V(net), weights=NA)
-
-oranges<-colorRampPalette(c("darkred", "gold"))
-col<-oranges(max(dist.from.Left)+1) 
-col<-col[dist.from.Left+1] 
-
-plot(net,
-     vertex.color=col,
-     vertex.label.color = "black")
-```
-
-In this case, we have $125$ nodes referred to the category Left having $1149$ nodes in total. The `dist.from.Left` has then dimension equals $125 \times 1149$. We take `r unique(length(col))` different colors one for each node to use as vertex color. As label, we use the `dist.from.Left` value computed by the `distance(x)` function.
-
-We can also highlight a path in the network, for example the shortest path from a vertex with Left account category to a vertex with Right account category.
+We can for example highlight a path in the network, the shortest path from a vertex with Left account category to a vertex with Right account category.
 
 ```{r}
 right.path<-shortest_paths(net,
@@ -277,7 +259,7 @@ vcol[unlist(right.path$vpath)]<-"gold" #color vertices
 plot(net,
      vertex.color=vcol,
      edge.color=ecol, 
-     edge.width=ew,edge.arrow.mode=0)
+     edge.width=ew,edge.arrow.mode=0, layout = layout_with_graphopt)
 ```
 
 We can highlight the edges going into or out of a vertex (or both), for instance the `Left`. For a single node, use `incident()`, for multiple nodes use `incident_edges()`:
@@ -290,7 +272,7 @@ vcol <- rep("grey40", vcount(net))
 vcol[V(net)[aType=="News"]] <- "gold" 
 plot(net, 
      vertex.color=vcol, 
-     edge.color=ecol)
+     edge.color=ecol, layout = layout_with_graphopt)
 ```
 
 We can also point to the immediate neighbors of a vertex, say again Left The neighbors function finds all nodes one step out from the focal actor. To find the neighbors for multiple nodes, use `adjacent_vertices()` instead of `neighbors()`. To find node neighborhoods going more than one step out, use function `ego()` with parameter order set to the number of steps out to go from the focal node(s).
@@ -298,16 +280,16 @@ We can also point to the immediate neighbors of a vertex, say again Left The nei
 ```{r}
 neigh.nodes <- neighbors(net, V(net)[aType=="Left"], mode="out")
 vcol[neigh.nodes] <- "#ff9d00" 
-plot(net, vertex.color=vcol)
+plot(net, vertex.color=vcol, layout = layout_with_graphopt)
 ```
 
 A way to draw attention to a group of nodes (we saw this before with communities) is to "mark" them:
 
 ```{r}
 par(mfrow=c(1,2)) 
-plot(net, mark.groups=which(membership(gr)==1), mark.col="#C5E5E7", mark.border=NA) 
+plot(net, mark.groups=which(membership(gr)==1), mark.col="#C5E5E7", mark.border=NA, layout = layout_with_graphopt)
 # Mark multiple groups: 
-plot(net, mark.groups=list(which(membership(gr)==1), which(membership(gr)==2)), mark.col=c("#C5E5E7","#ECD89A"), mark.border=NA)
+plot(net, mark.groups=list(which(membership(gr)==1), which(membership(gr)==2)), mark.col=c("#C5E5E7","#ECD89A"), mark.border=NA, layout = layout_with_graphopt)
 ```
 
 ## Interactive plotting with tkplot
@@ -350,7 +332,7 @@ __Comments__
 :::
 ::::
 
-Lets try to improve it, we want nodes having **size** that reflectes the *centrality betweeneess* measure.
+Lets try to improve it, we want nodes having **size** that reflects the *centrality betweeneess* measure.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}

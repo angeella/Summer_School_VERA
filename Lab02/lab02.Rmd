@@ -108,6 +108,7 @@ for(j in 1:ncol(X)){
 
 V(net)$name = V(net)$vertex.names 
 ```
+
 :::
 ::: {}
 __Comments__ 
@@ -156,7 +157,7 @@ __R commands__
 ```{r}
 E(net) 
 V(net)
-list.vertex.attributes(net)
+igraph::list.vertex.attributes(net)
 ```
 :::
 ::: {}
@@ -172,7 +173,7 @@ __Comments__
 
 First of all, we will eliminate the nodes without connections, i.e., degree equals $0$.
 
-> `r emo::ji("star")` **Remember**: The degree indicates the number of adjacent to which the node is connected. It measures how connected a node is, so it is a local measure.
+> `r emo::ji("star")` **Remember**: The degree indicates the number of adjacent to which the node is connected. It measures how connected a node is, so it is a **local measure**.
 
 :::: {style="display: grid; grid-template-columns: auto auto; grid-column-gap: 5px; place-items: start;"}
 ::: {}
@@ -181,6 +182,7 @@ __R commands__
 ```{r}
 net = delete_vertices(net, which(igraph::degree(net) < 1))
 ```
+
 :::
 ::: {}
 __Comments__ 
@@ -227,7 +229,7 @@ Given the nature of the decay in this distribution, a log–log scale is more ef
 ```{r}
 par(mfrow= c(1,1))
 dd.net <- degree_distribution(net)
-d <- 1:max(degree(net))-1
+d <- 1:max(igraph::degree(net))-1
 ind <- (dd.net != 0)
 plot(d[ind], dd.net[ind], log="xy", col="blue",
 xlab=c("Log-Degree"), ylab=c("Log-Intensity"),
@@ -240,7 +242,7 @@ Beyond the degree distribution itself, it can be interesting to understand the m
 
 ```{r}
 a.nn.deg.net <- knn(net,V(net))$knn
-plot(degree(net), a.nn.deg.net, log="xy",
+plot(igraph::degree(net), a.nn.deg.net, log="xy",
 col="goldenrod", xlab=c("Log Vertex Degree"),
 ylab=c("Log Average Neighbor Degree"))
 ```
@@ -272,19 +274,22 @@ So the average path length equals $5.15$. Also, we can compute the matrix $S$ of
 ```{r}
 par(mfrow = c(1,1))
 S = distances(graph = net)
-image(S,col = gray.colors(n = diameter(net))) 
-#The diameter of a graph is the length of the longest geodesic.
+image(S) 
 ```
 
+The diameter of a graph is the length of the longest geodesic:
 
-Many questions that might be asked about a vertex in a network graph essentially seek to understand its *importance* in the network. 
+```{r}
+diameter(net)
+```
+
+Many questions that might be asked about a vertex in a network graph essentially seek to understand its **importance in the network**. 
 
 Measures of centrality are designed to quantify such notions of *importance*. 
 
 There are a vast number of different centrality measures that have been proposed over the years. We have already encountered what is arguably the most widely used measure of vertex centrality: vertex degree. Here we will see:
 
-- **Closeness centrality**: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes. It measures attempt to capture the notion that a vertex is *central*
-if it is *close* to many other vertices.
+- **Closeness centrality**: how many steps is required to access every other vertex from a given vertex, i.e., how easily a node can reach other nodes. It measures attempt to capture the notion that a vertex is *central* if it is *close* to many other vertices.
 
 $$
 C_{Cl}(v) = \dfrac{1}{\sum_{u \in V} \text{dist}(v, u)}
@@ -382,7 +387,6 @@ sum(B_net > .1)
 
 We observe that only 6 nodes have a betweennes greater than $0.1$. We might also ask if and how these statistics are related. 
 
-
 > **_Question:_** _As as the degree increases, so do betwennes and closeness?_
 
 Let's compute the correlation between these measures:
@@ -414,34 +418,35 @@ We might ask which ties in the network are most important for the spread of, say
 eb <- edge.betweenness(net)
 E(net)[order(eb, decreasing=T)[1:3]]
 ```
+
 The account matevidence plays a key role in facilitating the direct flow of information between lil_game_vip and ndr_bolozyb.
 
-However, many other vertex centrality measures do not extend as easily. See Chap. 3 of the edited volume of [Brandes and Erlebach](https://link.springer.com/book/10.1007/b106453) for a brief discussion.
-
+However, many other vertex centrality measures do not extend as easily. See Chapter 3 of the edited volume of [Brandes and Erlebach](https://link.springer.com/book/10.1007/b106453) for a brief discussion.
 
 
 # Network cohesion
 
-A great many questions in network analysis boil down to questions involving network cohesion, the extent to which subsets of vertices are cohesive—or *stuck together*—with respect to the relation defining edges in the network graph.
+A great many questions in network analysis boil down to questions involving network cohesion, the extent to which subsets of vertices are **cohesive** or *stuck together* with respect to the relation defining edges in the network graph.
 
-There are many ways that we can define **network cohesion**, depending on the context of the question being asked. Definitions differ, for example, in scale, ranging from local (e.g., triads) to global (e.g., giant components), and also in the extent to which they are specified explicitly (e.g., cliques) versus implicitly (e.g., ‘clusters’ or ‘communities’). 
+One approach to defining network cohesion is through specification of a certain **subgraph(s)** of interest. 
 
+The canonical example of such a subgraph is that of a **clique**.
 
-One approach to defining network cohesion is through specification of a certain subgraph(s) of interest. The canonical example of such a subgraph is that of a clique.
-Recall that cliques are complete subgraphs and hence are subsets of vertices that are fully cohesive, in the sense that all vertices within the subset are connected by edges.
+> Recall that cliques are complete subgraphs, i.e., subsets of vertices that are fully cohesive (all vertices within the subset are connected by edges).
 
-A census of cliques of all sizes can provide some sense of a ‘snapshot’ of how structured a graph is.
+A census of cliques of all sizes can provide some sense of a *snapshot* of how structured a graph is.
 
 ```{r}
 table(sapply(cliques(net), length))
 ```
-We have 1149 nodes (cliques of size 1), 2587 edges (cliques of size two) and 1588 triangles (cliques of size 3). The largest cliques are of size 6, of which there are 21
+We have 1212 nodes (cliques of size 1), 2857 edges (cliques of size two) and 2155 triangles (cliques of size 3). The largest cliques are of size 6, of which there are 45.
 
 ```{r}
 cliques(net)[sapply(cliques(net), length) == 6][[1]]
 cliques(net)[sapply(cliques(net), length) == 6][[2]]
 cliques(net)[sapply(cliques(net), length) == 6][[3]]
 ```
+
 Considering the first three cliques of size 6, we can note that they shared several nodes.
 
 Note that there is some redundancy here, in that the cliques of larger sizes necessarily include cliques of smaller sizes. 
@@ -451,51 +456,66 @@ A **maximal** clique is a clique that is not a subset of a larger clique.
 ```{r}
 table(sapply(maximal.cliques(net), length))
 ```
-With
+and with
 
 ```{r}
 clique.number(net)
 ```
+
 you can see the size of the largest clique.
 
-We can also compute a $k$-core, i.e., a subgraph of $G$ for which all vertex degrees are at least $k$, and such that no other subgraph obeying the same condition contains it (i.e., it is maximal in this property).
+We can also compute a $k$-core, i.e., a subgraph of $G$ for which all vertex degrees are at least $k$, and such that no other subgraph obeying the same condition contains it (i.e., it is **maximal** in this property).
 
 ```{r}
 cores <- coreness(net)
 hist(cores)
 ```
 
-The characterizations of network cohesion described so far proceed by first stating a pre-specified notion of substructure and then looking to see whether it occurs in a graph $G$ and, if so, where and how often. More generally, the related concept of relative frequency can be applied in various useful ways.
+The characterizations of network cohesion described so far proceed by first stating a **pre-specified notion of substructure** and then looking to see whether it occurs in a graph $G$ and, if so, where and how often. 
 
-The density of a graph is the frequency of realized edges relative to potential edges. In a undirected graph $G$ with no self-loops and no multiple edges, the density of a subgraph $H = (V_H, G_H)$ is:
+The **density** of a graph is the frequency of realized edges relative to potential edges. 
+
+In a undirected graph $G$ with no self-loops and no multiple edges, the density of a subgraph $H = (V_H, G_H)$ is:
 
 $$
 \text{den}(H) = \dfrac{\mid E_H \mid}{\mid V_H \mid (\mid V_H \mid -1)/2}
 $$
-The value of $\text{den}(H)$ will lie between zero and one and provides a measure of how close $H$ is to being a clique.
+The value of $\text{den}(H)$ will lie between zero and one and provides a measure of **how close $H$ is to being a clique**.
 
 Taking $H=G$:
 
 ```{r}
 graph.density(net)
 ```
+
 Taking $H=H_v$ to be the set of neighbors of a vertex $v \in V$, and the edges between them:
 
 ```{r}
-sub.net <- induced.subgraph(net, igraph::neighborhood(net, 1, which(V(net)$accounttype == "left"))[[2]])
+neg.left <- igraph::neighborhood(net, nodes= which(V(net)$accounttype == "left"))
+
+idx.max.left <- which.max(sapply(seq(length(neg.left)), function(x) length(neg.left[[x]])))
+
+sub.net <- induced.subgraph(net, neg.left[[idx.max.left]])
 graph.density(sub.net)
 ```
+where `neighborhood` returns a list of vertex `left` neighborhoods. 
+
 ```{r}
-sub.net <- induced.subgraph(net, igraph::neighborhood(net, 1, which(V(net)$accounttype == "right"))[[1]])
+neg.right <- igraph::neighborhood(net, nodes= which(V(net)$accounttype == "right"))
+
+idx.max.right <- which.max(sapply(seq(length(neg.right)), function(x) length(neg.right[[x]])))
+
+sub.net <- induced.subgraph(net, neg.right[[idx.max.right]])
 graph.density(sub.net)
 ```
+> What can we say?
 
 Another measure is the **transitivity** which is a measure of global clustering, summarizing the relative frequency with which connected triples close to form triangles:
 
 $$
 \text{cl}_T(G) = \dfrac{3 \tau_{\Delta} (G)}{\tau_3 (G)}
 $$
-where $\tau_{\Delta} (G)$ is the number of trinagles in the graph $G$, and $\tau_3 (G)$ is the number of connected triples (i.e., a subgraph of three vertices connected by two edges).
+where $\tau_{\Delta} (G)$ is the number of triangles in the graph $G$, and $\tau_3 (G)$ is the number of connected triples (i.e., a subgraph of three vertices connected by two edges).
 
 ```{r}
 transitivity(net)
@@ -512,7 +532,7 @@ $$
 transitivity(net, "local", vids = which(V(net)$accounttype == "left")[2])
 ```
 
-# Graph Partitioning
+## Graph Partitioning
 
 Partitioning refers to the segmentation of a set of elements into *natural* subsets. 
 
@@ -570,14 +590,18 @@ In general we do not expect there to be much difference from these statistics if
 
 A natural question at this point is whether the division into groups is "good" in terms of cohesion.
 
+> `r emo::ji("star")` *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections: high modularity $\rightarrow$ **strong distinct defined communities, $\mathcal{C}$ captures nontrivial ‘group’ structure, beyond that
+expected to occur under the random assignment of edges.**.
+
 ```{r}
 modularity(net,factor(aType))
-assortativity(net,factor(aType))
 ```
 
-> `r emo::ji("star")` **Remember**:
-- *modularity*: Fraction of edges connecting nodes in the same group minus the expected value of the same quantity in a network with random connections: high modularity $\rightarrow$ strong distinct defined communities.
-- *assortativity*: measures the level of homophyly of the graph, based on some vertex labeling or values assigned to vertices. If the coefficient is high, that means that connected vertices tend to have the same labels or similar assigned values.
+> `r emo::ji("star")` *assortativity*: measures the level of homophyly of the graph, based on some vertex labeling or values assigned to vertices. If the coefficient is high, that means that **connected vertices tend to have the same labels or similar assigned values**.
+
+```{r}
+assortativity(net,factor(aType))
+```
 
 The division actually leads to very high values of *assortativity*, confirming a strong homophily with respect to the group. 
 
@@ -598,12 +622,11 @@ We try to obtain a more interesting partition by estimating the groups on the ba
 
 - etc
 
-Here, we will apply the first one, the Louvain method, we will not go into details, but it find community (subgraphs) optimazing the modularity measure.
-
-Large values of the modularity are therefore taken to suggest that $\mathcal{C}$ captures nontrivial ‘group’ structure, beyond that expected to occur under the random assignment of edges.
+Here, we will apply the first one, the Louvain method, we will not go into details, but it find community (subgraphs) optimazing the **modularity measure**.
 
 
 ```{r}
+set.seed(123)
 gr = cluster_louvain(graph = net)
 #gr2 = cluster_fast_greedy(graph = net) #agglomerative hierarchical clustering algorithm
 ```
@@ -633,12 +656,6 @@ modularity(gr)
 
 So, summing up  `modularity(x)` can take as input the graph with the membership vector of the community structure or directly the `community` objects.
 
-```{r}
-net1 <- net
-vertex_attr(net1)$name  <- NULL
-gr1 = cluster_louvain(graph = net1)
-plot(gr1, net1,col = NULL)
-```
 
 
 > **_Question:_** _What is the relationship between the groups identified by the *Louvain* method and those referred to the sphere of influence, i.e., the `aType` variable?_ 
